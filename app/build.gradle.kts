@@ -10,6 +10,7 @@ android {
     defaultConfig {
         applicationId = "off.kys.textgrab"
         minSdk = 26
+        //noinspection OldTargetApi
         targetSdk = 35
         versionCode = 1
         versionName = "1.0.0"
@@ -71,10 +72,7 @@ dependencies {
     implementation(libs.androidx.compose.material.icons.extended)
     debugImplementation(libs.androidx.compose.ui.tooling)
 
-    // ML Kit Text Recognition (Latin)
-    implementation(libs.mlkit.text.recognition)
-    
-    // Tesseract OCR (Arabic)
+    // Tesseract OCR (Latin + Arabic)
     implementation(libs.tesseract4android)
 
     // Coroutines

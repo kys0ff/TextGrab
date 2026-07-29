@@ -1,19 +1,23 @@
 # Add project specific ProGuard rules here.
 
-# --- ML Kit Text Recognition ---
-# ML Kit downloads recognizer models via optional dependencies. Keep their entry
-# points so R8 does not strip the dynamically-loaded script recognizers.
--keep class com.google.mlkit.vision.text.** { *; }
--keep class com.google.android.gms.internal.mlkit_vision_text_common.** { *; }
--dontwarn com.google.mlkit.vision.text.**
+# --- R8 Full Mode Attributes ---
+# Standard attributes for crash reporting, reflection, and generic stability.
+-keepattributes Signature,AnnotationDefault,EnclosingMethod,InnerClasses,SourceFile,LineNumberTable
 
-# Keep the Arabic script recognizer options referenced reflectively.
--keep class com.google.mlkit.vision.text.arabic.** { *; }
+# --- Tesseract4Android ---
+# Tesseract uses JNI; keep all its classes and native methods to avoid crashes.
+-keep class com.googlecode.tesseract.android.** { *; }
+-keep class cz.adaptech.tesseract4android.** { *; }
+-dontwarn com.googlecode.tesseract.android.**
+-dontwarn cz.adaptech.tesseract4android.**
 
-# --- Kotlin coroutines ---
--dontwarn kotlinx.coroutines.**
-
-# Keep our service / tile / activity entry points referenced only from the manifest.
--keep class off.kys.textgrab.accessibility.TextGrabAccessibilityService { *; }
--keep class off.kys.textgrab.tile.TextGrabTileService { *; }
--keep class off.kys.textgrab.ocr.ScreenCaptureService { *; }
+# --- Core Data Models ---
+# Keep names for enums and fields used in JSON serialization (HistoryRepository).
+-keepclassmembers class off.kys.textgrab.core.model.** {
+    <fields>;
+}
+-keepclassmembers enum off.kys.textgrab.core.model.** {
+    <fields>;
+    public static **[] values();
+    public static ** valueOf(java.lang.String);
+}

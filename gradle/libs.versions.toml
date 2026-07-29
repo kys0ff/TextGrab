@@ -13,8 +13,7 @@ datastore = "1.2.1"
 # Compose
 composeBom = "2026.06.01"
 
-# ML Kit
-mlkitText = "16.0.1"
+# Tesseract
 tesseract = "4.9.0"
 
 # Coroutines
@@ -40,8 +39,7 @@ androidx-compose-ui-tooling-preview = { group = "androidx.compose.ui", name = "u
 androidx-compose-material3 = { group = "androidx.compose.material3", name = "material3" }
 androidx-compose-material-icons-extended = { group = "androidx.compose.material", name = "material-icons-extended" }
 
-# ML Kit
-mlkit-text-recognition = { group = "com.google.mlkit", name = "text-recognition", version.ref = "mlkitText" }
+# Tesseract
 tesseract4android = { group = "cz.adaptech.tesseract4android", name = "tesseract4android", version.ref = "tesseract" }
 
 # Coroutines

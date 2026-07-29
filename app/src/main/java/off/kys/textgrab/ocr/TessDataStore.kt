@@ -11,21 +11,24 @@ import java.io.FileOutputStream
 object TessDataStore {
 
     private const val TESS_DATA_DIR = "tessdata"
-    private const val ARABIC_DATA = "ara.traineddata"
 
     /**
-     * Ensures that the Arabic language data is available in the internal storage.
+     * Ensures that the traineddata for every language in [tessLanguage] (a
+     * Tesseract language string such as "eng", "ara" or "ara+eng") is available
+     * in the internal storage.
      * Returns the absolute path to the directory containing 'tessdata/'.
      */
-    fun getTessDataPath(context: Context): String {
+    fun getTessDataPath(context: Context, tessLanguage: String): String {
         val dir = File(context.filesDir, TESS_DATA_DIR)
         if (!dir.exists()) {
             dir.mkdirs()
         }
 
-        val file = File(dir, ARABIC_DATA)
-        if (!file.exists()) {
-            copyFromAssets(context, file)
+        for (language in tessLanguage.split('+')) {
+            val file = File(dir, "$language.traineddata")
+            if (!file.exists()) {
+                copyFromAssets(context, file)
+            }
         }
 
         // Tesseract init() expects the path to the directory *containing* 'tessdata'
@@ -33,7 +36,7 @@ object TessDataStore {
     }
 
     private fun copyFromAssets(context: Context, destination: File) {
-        context.assets.open("$TESS_DATA_DIR/$ARABIC_DATA").use { input ->
+        context.assets.open("$TESS_DATA_DIR/${destination.name}").use { input ->
             FileOutputStream(destination).use { output ->
                 input.copyTo(output)
             }

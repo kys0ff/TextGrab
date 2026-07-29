@@ -7,7 +7,7 @@ import androidx.compose.runtime.Immutable
  *
  * [ACCESSIBILITY] is the primary, on-device, zero-capture engine that walks the
  * active window's [android.view.accessibility.AccessibilityNodeInfo] tree.
- * [OCR] is the ML Kit fallback fed by a MediaProjection screenshot.
+ * [OCR] is the Tesseract fallback fed by a MediaProjection screenshot.
  */
 enum class ExtractionMode { ACCESSIBILITY, OCR }
 
@@ -20,7 +20,7 @@ enum class OcrLanguage { LATIN, ARABIC, BOTH }
  * A single selectable text element positioned in **screen pixel** coordinates.
  *
  * Bounds come either from [android.view.accessibility.AccessibilityNodeInfo.getBoundsInScreen]
- * (accessibility engine) or from an ML Kit `Text.Line.boundingBox` (OCR engine).
+ * (accessibility engine) or from a Tesseract text-line bounding box (OCR engine).
  */
 @Immutable
 data class GrabbedText(
