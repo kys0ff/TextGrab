@@ -33,6 +33,9 @@
     <string name="overlay_select">تحديد</string>
     <string name="perm_accessibility_desc">المحرك الأساسي. يقرأ النص مباشرةً من النافذة النشطة — سريع ودقيق وموفّر للبطارية.</string>
     <string name="perm_accessibility_title">خدمة إمكانية الوصول</string>
+    <string name="perm_notifications_action">منح الإذن</string>
+    <string name="perm_notifications_desc">مطلوب لإظهار مؤشر الحالة بينما يقوم تكست غراب بقراءة شاشتك للتعرف الضوئي على النص.</string>
+    <string name="perm_notifications_title">الإشعارات</string>
     <string name="perm_overlay_desc">يسمح لتكست غراب برسم طبقة النص القابلة للتحديد فوق ما تشاهده.</string>
     <string name="perm_overlay_title">العرض فوق التطبيقات الأخرى</string>
     <string name="perm_projection_desc">يُستخدم فقط عندما يتعذّر قراءة الشاشة مباشرةً — الصور واللوحات والألعاب والعروض المحمية. تُطلب الموافقة في كل مرة.</string>

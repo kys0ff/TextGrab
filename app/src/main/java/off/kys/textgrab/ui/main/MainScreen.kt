@@ -20,6 +20,7 @@ import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.DocumentScanner
 import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.Layers
+import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Widgets
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -65,6 +66,7 @@ fun MainScreen(
     history: List<HistoryEntry>,
     onOpenAccessibility: () -> Unit,
     onOpenOverlay: () -> Unit,
+    onOpenNotifications: () -> Unit,
     onClearHistory: () -> Unit,
     onCopyHistory: (String) -> Unit,
     onScanNow: () -> Unit,
@@ -110,8 +112,6 @@ fun MainScreen(
                 )
             }
 
-            // All setup rows grouped into one card — far more compact than three
-            // separate elevated cards, and reads as a single coherent checklist.
             item {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
@@ -145,8 +145,19 @@ fun MainScreen(
                                 alpha = 0.4f
                             )
                         )
-                        // MediaProjection needs no persistent grant — consent is
-                        // requested per use — so this row is purely informational.
+                        PermissionRow(
+                            icon = Icons.Filled.Notifications,
+                            title = stringResource(R.string.perm_notifications_title),
+                            description = stringResource(R.string.perm_notifications_desc),
+                            granted = permissions.notifications,
+                            actionLabel = stringResource(R.string.perm_notifications_action),
+                            onAction = onOpenNotifications,
+                        )
+                        HorizontalDivider(
+                            color = MaterialTheme.colorScheme.outlineVariant.copy(
+                                alpha = 0.4f
+                            )
+                        )
                         PermissionRow(
                             icon = Icons.Filled.Image,
                             title = stringResource(R.string.perm_projection_title),

@@ -3,7 +3,6 @@ package off.kys.textgrab
 import android.Manifest
 import android.content.ClipData
 import android.content.ClipboardManager
-import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -12,7 +11,6 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.compose.runtime.getValue
-import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import off.kys.textgrab.core.model.OverlayCommand
 import off.kys.textgrab.core.permission.PermissionManager
@@ -32,7 +30,6 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        requestNotificationPermissionIfNeeded()
 
         setContent {
             TextGrabTheme {
@@ -44,6 +41,11 @@ class MainActivity : ComponentActivity() {
                     history = history,
                     onOpenAccessibility = { PermissionManager.openAccessibilitySettings(this) },
                     onOpenOverlay = { PermissionManager.openOverlaySettings(this) },
+                    onOpenNotifications = {
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                            notificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
+                        }
+                    },
                     onClearHistory = viewModel::clearHistory,
                     onCopyHistory = ::copyToClipboard,
                     onScanNow = {
@@ -66,14 +68,5 @@ class MainActivity : ComponentActivity() {
     private fun copyToClipboard(text: String) {
         val clipboard = getSystemService(CLIPBOARD_SERVICE) as ClipboardManager
         clipboard.setPrimaryClip(ClipData.newPlainText("TextGrab", text))
-    }
-
-    private fun requestNotificationPermissionIfNeeded() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            val granted = ContextCompat.checkSelfPermission(
-                this, Manifest.permission.POST_NOTIFICATIONS,
-            ) == PackageManager.PERMISSION_GRANTED
-            if (!granted) notificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
-        }
     }
 }
