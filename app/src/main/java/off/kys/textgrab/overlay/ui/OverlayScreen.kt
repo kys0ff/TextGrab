@@ -194,7 +194,7 @@ fun OverlayScreen(
                             1f to Color.Black.copy(alpha = 0.55f),
                         ),
                     )
-                    .pointerInput(Unit) { detectTapGestures(onTap = { onClose() }) },
+                    .pointerInput(Unit) { detectTapGestures(onTap = { /* CONSUMED */ }) },
             )
 
             // Text Bounding Boxes
@@ -206,9 +206,6 @@ fun OverlayScreen(
                     widthDp = with(density) { element.width.toDp() },
                     heightDp = with(density) { element.height.toDp() },
                     onSelect = {
-                        // A single touch now starts/extends selection instead
-                        // of requiring a long press: touching an item enters
-                        // multi-select (if not already active) and toggles it.
                         if (!multiSelect) multiSelect = true
                         if (selected.contains(element.id)) {
                             selected.remove(element.id)

@@ -30,7 +30,6 @@ import off.kys.textgrab.overlay.ui.OverlayScreen
  */
 class OverlayController(
     private val context: Context,
-    private val onCopy: (String, ExtractionMode) -> Unit,
     private val onCopyAll: (List<String>, ExtractionMode) -> Unit,
     private val onSwitchMode: (ExtractionMode) -> Unit,
     private val onSwitchLanguage: (OcrLanguage) -> Unit,
@@ -44,20 +43,13 @@ class OverlayController(
     private var attached = false
 
     private fun buildLayoutParams(): WindowManager.LayoutParams {
-        val type = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        val type =
             WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
-        } else {
-            @Suppress("DEPRECATION")
-            WindowManager.LayoutParams.TYPE_PHONE
-        }
 
         return WindowManager.LayoutParams(
             WindowManager.LayoutParams.MATCH_PARENT,
             WindowManager.LayoutParams.MATCH_PARENT,
             type,
-            // NOT_FOCUSABLE keeps touch delivery to our view while never stealing IME
-            // focus from the app underneath. LAYOUT_IN_SCREEN + NO_LIMITS makes our
-            // pixel offsets line up 1:1 with AccessibilityNodeInfo screen bounds.
             WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
                 WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
                 WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS or
@@ -66,8 +58,10 @@ class OverlayController(
         ).apply {
             gravity = Gravity.TOP or Gravity.START
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                layoutInDisplayCutoutMode =
-                    WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_ALWAYS
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                    layoutInDisplayCutoutMode =
+                        WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_ALWAYS
+                }
             }
         }
     }
