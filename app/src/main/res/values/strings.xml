@@ -1,68 +1,48 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">TextGrab</string>
-    <string name="app_tagline">Grab any text on your screen</string>
-
-    <!-- Manifest-referenced labels -->
-    <string name="tile_label">TextGrab</string>
-    <string name="accessibility_service_label">TextGrab Text Extraction</string>
     <string name="accessibility_service_description">TextGrab reads the text on your current screen so you can tap to copy any word, line or block, including Arabic and Latin scripts. Text is processed on-device and is never uploaded.</string>
-
-    <!-- Foreground-service notification -->
-    <string name="notif_channel_capture">Screen capture</string>
-    <string name="notif_capture_title">TextGrab is reading the screen</string>
-    <string name="notif_capture_text">Capturing a snapshot for on-device text recognition…</string>
-
-    <!-- Main screen -->
-    <string name="setup_title">Setup</string>
-    <string name="setup_intro">Enable the pieces below, add the Quick Settings tile, then grab text from anywhere.</string>
-    <string name="history_title">Copy history</string>
-    <string name="history_empty">Text you copy will show up here.</string>
-    <string name="history_clear">Clear</string>
-
-    <!-- Permission cards -->
-    <string name="perm_accessibility_title">Accessibility service</string>
-    <string name="perm_accessibility_desc">Primary engine. Reads on-screen text directly from the active window, fast &amp; accurate and battery-friendly.</string>
-    <string name="perm_overlay_title">Display over other apps</string>
-    <string name="perm_overlay_desc">Lets TextGrab draw the selectable text layer on top of whatever you are viewing.</string>
-    <string name="perm_projection_title">Screen capture (OCR fallback)</string>
-    <string name="perm_projection_desc">Used only when a screen can\'t be read directly (Eg: images, canvas, games or protected views) Consent is requested each time.</string>
-
-    <string name="status_granted">Enabled</string>
-    <string name="status_needed">Action needed</string>
+    <string name="accessibility_service_label">TextGrab: Text Extraction</string>
     <string name="action_grant">Grant</string>
     <string name="action_open_settings">Open settings</string>
-
-    <!-- Tile setup -->
-    <string name="tile_setup_title">Add the Quick Settings tile</string>
-    <string name="tile_setup_desc">Swipe down twice, tap the edit (pencil) button, then drag the TextGrab tile into your active tiles. Tap it any time to grab text instantly.</string>
-
-    <string name="scan_now">Scan now</string>
-
-    <!-- Overlay -->
+    <string name="app_name">TextGrab</string>
+    <string name="app_tagline">Grab any text on your screen</string>
+    <string name="copied_multi_toast">Copied %1$d items</string>
+    <string name="copied_toast">Copied to clipboard</string>
+    <string name="history_clear">Clear</string>
+    <string name="history_empty">Text you copy will show up here.</string>
+    <string name="history_title">Copy history</string>
     <string name="mode_accessibility">Accessibility</string>
     <string name="mode_ocr">OCR</string>
-
-    <string name="ocr_lang_latin">Latin</string>
+    <string name="notif_capture_text">Capturing a snapshot for on-device text recognition…</string>
+    <string name="notif_capture_title">TextGrab is reading the screen</string>
+    <string name="notif_channel_capture">Screen capture</string>
     <string name="ocr_lang_arabic">Arabic</string>
     <string name="ocr_lang_both">Both</string>
-
-    <string name="overlay_rescan">Rescan</string>
+    <string name="ocr_lang_latin">Latin</string>
     <string name="overlay_close">Close</string>
-    <string name="overlay_select">Select</string>
+    <string name="overlay_collapse">Collapse</string>
     <string name="overlay_copy_all">Copy all</string>
     <string name="overlay_copy_selected">Copy (%1$d)</string>
-    <string name="overlay_scanning">Scanning…</string>
+    <string name="overlay_denied">Screen-capture permission was denied.</string>
     <string name="overlay_empty_accessibility">No readable text found. Switch to OCR mode for images or protected content.</string>
     <string name="overlay_empty_ocr">No text detected on the screen.</string>
-    <string name="overlay_denied">Screen-capture permission was denied.</string>
-    <string name="overlay_hint_tap">Tap any box to start selecting</string>
-
-    <!-- Toasts -->
-    <string name="copied_toast">Copied to clipboard</string>
-    <string name="copied_multi_toast">Copied %1$d items</string>
-
-
-    <string name="overlay_collapse">Collapse</string>
     <string name="overlay_expand">Expand</string>
+    <string name="overlay_hint_tap">Tap any box to start selecting</string>
+    <string name="overlay_rescan">Rescan</string>
+    <string name="overlay_scanning">Scanning…</string>
+    <string name="overlay_select">Select</string>
+    <string name="perm_accessibility_desc">Primary engine. Reads on-screen text directly from the active window, fast &amp; accurate and battery-friendly.</string>
+    <string name="perm_accessibility_title">Accessibility service</string>
+    <string name="perm_overlay_desc">Lets TextGrab draw the selectable text layer on top of whatever you are viewing.</string>
+    <string name="perm_overlay_title">Display over other apps</string>
+    <string name="perm_projection_desc">Used only when a screen can\'t be read directly (Eg: images, canvas, games or protected views) Consent is requested each time.</string>
+    <string name="perm_projection_title">Screen capture (OCR fallback)</string>
+    <string name="scan_now">Scan now</string>
+    <string name="setup_intro">Enable the pieces below, add the Quick Settings tile, then grab text from anywhere.</string>
+    <string name="setup_title">Setup</string>
+    <string name="status_granted">Enabled</string>
+    <string name="status_needed">Action needed</string>
+    <string name="tile_label">TextGrab</string>
+    <string name="tile_setup_desc">Swipe down twice, tap the edit (pencil) button, then drag the TextGrab tile into your active tiles. Tap it any time to grab text instantly.</string>
+    <string name="tile_setup_title">Add the Quick Settings tile</string>
 </resources>
