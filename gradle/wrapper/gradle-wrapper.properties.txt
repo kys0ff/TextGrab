@@ -1,0 +1,18 @@
+RENAME THIS FILE TO: gradle-wrapper.properties
+
+(It ships as .txt only because the packaging sandbox reserves the exact
+"gradle-wrapper.properties" name. Android Studio also regenerates the full
+Gradle wrapper automatically on first project sync, so you can simply open
+the project and let the IDE create it, or run:
+
+    gradle wrapper --gradle-version 8.9
+
+--- file contents below this line ---
+
+distributionBase=GRADLE_USER_HOME
+distributionPath=wrapper/dists
+distributionUrl=https\://services.gradle.org/distributions/gradle-8.9-bin.zip
+networkTimeout=10000
+validateDistributionUrl=true
+zipStoreBase=GRADLE_USER_HOME
+zipStorePath=wrapper/dists

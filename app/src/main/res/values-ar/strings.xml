@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">تكست غراب</string>
+    <string name="app_tagline">التقط أي نص على شاشتك</string>
+
+    <string name="tile_label">تكست غراب</string>
+    <string name="accessibility_service_label">استخراج النص من تكست غراب</string>
+    <string name="accessibility_service_description">يقرأ تكست غراب النص الموجود على شاشتك الحالية حتى تتمكن من النقر لنسخ أي كلمة أو سطر أو فقرة — بما في ذلك النصوص العربية واللاتينية. تتم المعالجة على الجهاز ولا يتم رفع أي بيانات.</string>
+
+    <string name="notif_channel_capture">التقاط الشاشة</string>
+    <string name="notif_capture_title">يقوم تكست غراب بقراءة الشاشة</string>
+    <string name="notif_capture_text">يتم التقاط لقطة للتعرف على النص على الجهاز…</string>
+
+    <string name="setup_title">الإعداد</string>
+    <string name="setup_intro">فعّل العناصر أدناه، أضف مربّع الإعدادات السريعة، ثم التقط النص من أي مكان.</string>
+    <string name="history_title">سجل النسخ</string>
+    <string name="history_empty">سيظهر هنا النص الذي تنسخه.</string>
+    <string name="history_clear">مسح</string>
+
+    <string name="perm_accessibility_title">خدمة إمكانية الوصول</string>
+    <string name="perm_accessibility_desc">المحرك الأساسي. يقرأ النص مباشرةً من النافذة النشطة — سريع ودقيق وموفّر للبطارية.</string>
+    <string name="perm_overlay_title">العرض فوق التطبيقات الأخرى</string>
+    <string name="perm_overlay_desc">يسمح لتكست غراب برسم طبقة النص القابلة للتحديد فوق ما تشاهده.</string>
+    <string name="perm_projection_title">التقاط الشاشة (احتياطي OCR)</string>
+    <string name="perm_projection_desc">يُستخدم فقط عندما يتعذّر قراءة الشاشة مباشرةً — الصور واللوحات والألعاب والعروض المحمية. تُطلب الموافقة في كل مرة.</string>
+
+    <string name="status_granted">مُفعّل</string>
+    <string name="status_needed">مطلوب إجراء</string>
+    <string name="action_grant">منح الإذن</string>
+    <string name="action_open_settings">فتح الإعدادات</string>
+
+    <string name="tile_setup_title">أضف مربّع الإعدادات السريعة</string>
+    <string name="tile_setup_desc">اسحب لأسفل مرتين، اضغط على زر التعديل (القلم)، ثم اسحب مربّع تكست غراب إلى المربعات النشطة. اضغط عليه في أي وقت لالتقاط النص فورًا.</string>
+
+    <string name="scan_now">التقاط الآن</string>
+
+    <string name="mode_accessibility">إمكانية الوصول</string>
+    <string name="mode_ocr">التعرّف الضوئي</string>
+
+    <string name="ocr_lang_latin">اللاتينية</string>
+    <string name="ocr_lang_arabic">العربية</string>
+    <string name="ocr_lang_both">الكل</string>
+
+    <string name="overlay_rescan">إعادة المسح</string>
+    <string name="overlay_close">إغلاق</string>
+    <string name="overlay_select">تحديد</string>
+    <string name="overlay_copy_all">نسخ الكل</string>
+    <string name="overlay_copy_selected">نسخ (%1$d)</string>
+    <string name="overlay_scanning">جارٍ المسح…</string>
+    <string name="overlay_empty_accessibility">لم يُعثر على نص قابل للقراءة. بدّل إلى وضع OCR للصور أو المحتوى المحمي.</string>
+    <string name="overlay_empty_ocr">لم يتم اكتشاف أي نص على الشاشة.</string>
+    <string name="overlay_denied">تم رفض إذن التقاط الشاشة.</string>
+    <string name="overlay_hint_tap">انقر على أي مربع للنسخ · اضغط مطولًا للتحديد المتعدد</string>
+
+    <string name="copied_toast">تم النسخ إلى الحافظة</string>
+    <string name="copied_multi_toast">تم نسخ %1$d عنصرًا</string>
+</resources>
