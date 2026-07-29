@@ -47,6 +47,17 @@ class OcrEngine {
         lines.sortedWith(compareBy({ it.top }, { it.left }))
     }
 
+    /**
+     * Pre-warms the Tesseract engine for the given language on a background thread.
+     * This ensures that data files are copied and the native engine is initialized
+     * before the first recognition request.
+     */
+    suspend fun prepare(context: Context, language: OcrLanguage) = withContext(Dispatchers.Default) {
+        tessMutex.withLock {
+            getOrInitTess(context, language.toTessLanguage())
+        }
+    }
+
     /** Releases native resources. Call when the owner of this engine is destroyed. */
     suspend fun close() {
         tessMutex.withLock {
@@ -61,9 +72,9 @@ class OcrEngine {
      * only when the requested language string differs from the current one.
      * Must be called while holding [tessMutex].
      */
-    private fun getOrInitTess(context: Context, tessLang: String): TessBaseAPI? {
+    private suspend fun getOrInitTess(context: Context, tessLang: String): TessBaseAPI? = withContext(Dispatchers.IO) {
         tess?.let { existing ->
-            if (tessLanguage == tessLang) return existing
+            if (tessLanguage == tessLang) return@withContext existing
             existing.recycle()
             tess = null
             tessLanguage = null
@@ -76,11 +87,11 @@ class OcrEngine {
         if (!newTess.init(dataPath, tessLang, TessBaseAPI.OEM_LSTM_ONLY)) {
             Log.e("OcrEngine", "Tesseract failed to initialize with '$tessLang' at $dataPath")
             newTess.recycle()
-            return null
+            return@withContext null
         }
         tess = newTess
         tessLanguage = tessLang
-        return newTess
+        newTess
     }
 
     private suspend fun runTesseract(

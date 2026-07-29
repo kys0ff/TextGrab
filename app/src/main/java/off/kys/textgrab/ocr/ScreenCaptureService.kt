@@ -27,6 +27,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import off.kys.textgrab.R
+import off.kys.textgrab.ServiceLocator
 import off.kys.textgrab.core.model.ExtractionMode
 import off.kys.textgrab.core.model.OverlayCommand
 import off.kys.textgrab.core.model.OverlayStatus
@@ -41,7 +42,7 @@ import off.kys.textgrab.overlay.OverlayBus
 class ScreenCaptureService : Service() {
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
-    private val ocr by lazy { OcrEngine() }
+    private val ocr by lazy { ServiceLocator.ocr }
     private val mainHandler = Handler(Looper.getMainLooper())
 
     private var projection: MediaProjection? = null

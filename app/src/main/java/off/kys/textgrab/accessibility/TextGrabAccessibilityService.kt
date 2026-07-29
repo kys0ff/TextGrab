@@ -14,6 +14,7 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import off.kys.textgrab.R
+import off.kys.textgrab.ServiceLocator
 import off.kys.textgrab.core.clipboard.ClipboardHelper
 import off.kys.textgrab.core.model.ExtractionMode
 import off.kys.textgrab.core.model.OverlayCommand
@@ -77,6 +78,22 @@ class TextGrabAccessibilityService : AccessibilityService() {
 
         scope.launch {
             OverlayBus.commands.collect(::handle)
+        }
+
+        scope.launch {
+            OverlayBus.mode.collect { mode ->
+                if (mode == ExtractionMode.OCR) {
+                    ServiceLocator.ocr.prepare(this@TextGrabAccessibilityService, OverlayBus.ocrLanguage.value)
+                }
+            }
+        }
+
+        scope.launch {
+            OverlayBus.ocrLanguage.collect { lang ->
+                if (OverlayBus.mode.value == ExtractionMode.OCR) {
+                    ServiceLocator.ocr.prepare(this@TextGrabAccessibilityService, lang)
+                }
+            }
         }
     }
 

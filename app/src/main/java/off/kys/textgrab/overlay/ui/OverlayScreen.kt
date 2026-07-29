@@ -1,5 +1,6 @@
 package off.kys.textgrab.overlay.ui
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
@@ -173,6 +174,8 @@ fun OverlayScreen(
     var actionBarSize by remember { mutableStateOf(IntSize.Zero) }
 
     LaunchedEffect(elements) { selected.clear() }
+
+    BackHandler { /* CONSUMED */ }
 
     TextGrabTheme {
         BoxWithConstraints(Modifier.fillMaxSize()) {
@@ -811,7 +814,9 @@ private fun InfoCard(
             ),
         ) {
             Column(
-                Modifier.padding(28.dp).fillMaxWidth(),
+                Modifier
+                    .padding(28.dp)
+                    .fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) { content() }
         }
