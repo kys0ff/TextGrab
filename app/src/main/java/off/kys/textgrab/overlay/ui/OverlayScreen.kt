@@ -3,7 +3,10 @@ package off.kys.textgrab.overlay.ui
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
@@ -11,6 +14,8 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.animation.shrinkVertically
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -47,7 +52,6 @@ import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.DocumentScanner
 import androidx.compose.material.icons.filled.DoneAll
 import androidx.compose.material.icons.filled.ErrorOutline
-import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.Language
@@ -76,6 +80,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -89,6 +94,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
@@ -216,7 +222,7 @@ fun OverlayScreen(
             targetState = isScrollMode,
             transitionSpec = {
                 (fadeIn() + scaleIn(initialScale = 0.95f)) togetherWith
-                    (fadeOut() + scaleOut(targetScale = 0.95f))
+                        (fadeOut() + scaleOut(targetScale = 0.95f))
             },
             label = "scrollModeTransition",
             modifier = Modifier.animateContentSize()
@@ -430,10 +436,31 @@ private fun TextBox(
         label = "textBoxBorderWidth",
     )
 
+    // A gentle pop when a box is (de)selected — its scale settles just above
+    // 1x with a bouncy spring rather than snapping instantly.
+    val selectionScale by animateFloatAsState(
+        targetValue = if (selected) 1.05f else 1f,
+        animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy),
+        label = "textBoxSelectionScale",
+    )
+
+    // A brief scale+fade entrance the first time each box appears on screen,
+    // so newly-detected text doesn't just snap into existence.
+    val appear = remember(element.id) { Animatable(0f) }
+    LaunchedEffect(element.id) {
+        appear.animateTo(1f, animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow))
+    }
+
     Box(
         Modifier
             .offset { IntOffset(element.left, element.top) }
             .size(width = widthDp.coerceAtLeast(28.dp), height = heightDp.coerceAtLeast(22.dp))
+            .graphicsLayer {
+                val scale = appear.value * selectionScale
+                scaleX = scale
+                scaleY = scale
+                alpha = appear.value
+            }
             .shadow(
                 elevation = if (selected) 4.dp else 1.dp,
                 shape = RoundedCornerShape(8.dp),
@@ -571,15 +598,21 @@ private fun OverlayHeader(
 
                 Spacer(Modifier.width(4.dp))
 
+                val chevronRotation by animateFloatAsState(
+                    targetValue = if (isExpanded) 180f else 0f,
+                    label = "chevronRotation",
+                )
                 FilledTonalIconButton(onClick = onToggleExpand, modifier = Modifier.size(36.dp)) {
                     Icon(
-                        imageVector = if (isExpanded) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore,
+                        imageVector = Icons.Filled.ExpandMore,
                         contentDescription = if (isExpanded) {
                             stringResource(R.string.overlay_collapse)
                         } else {
                             stringResource(R.string.overlay_expand)
                         },
-                        modifier = Modifier.size(18.dp),
+                        modifier = Modifier
+                            .size(18.dp)
+                            .graphicsLayer { rotationZ = chevronRotation },
                     )
                 }
                 Spacer(Modifier.width(6.dp))
@@ -689,15 +722,15 @@ private fun LanguageSelector(
                     TessDataStore.hasAnyInstalled(context, lang.toTessCode())
                 }
             }
-            
+
             FilterChip(
                 selected = selected == lang,
                 onClick = { onSelect(lang) },
-                label = { 
+                label = {
                     Text(
                         stringResource(lang.toDisplayString()),
                         style = MaterialTheme.typography.labelSmall
-                    ) 
+                    )
                 },
                 leadingIcon = if (!isInstalled) {
                     { Icon(Icons.Default.ErrorOutline, contentDescription = null, modifier = Modifier.size(16.dp)) }
@@ -785,7 +818,23 @@ private fun OverlayActionBar(
                         Badge(
                             containerColor = scheme.primary,
                             contentColor = scheme.onPrimary,
-                        ) { Text("$selectedCount") }
+                        ) {
+                            // An odometer-style digit transition rather than an
+                            // instant swap whenever the selection count changes.
+                            AnimatedContent(
+                                targetState = selectedCount,
+                                transitionSpec = {
+                                    if (targetState > initialState) {
+                                        (slideInVertically { it } + fadeIn()) togetherWith
+                                                (slideOutVertically { -it } + fadeOut())
+                                    } else {
+                                        (slideInVertically { -it } + fadeIn()) togetherWith
+                                                (slideOutVertically { it } + fadeOut())
+                                    }
+                                },
+                                label = "selectedCountBadge",
+                            ) { count -> Text("$count") }
+                        }
                     }
                 },
             ) {
@@ -935,7 +984,7 @@ private fun StatusCenter(
             }
         }
 
-        is OverlayStatus.Error -> InfoCard(modifier) {
+        is OverlayStatus.Error -> InfoCard(modifier, accentColor = MaterialTheme.colorScheme.error) {
             IllustrationBadge(icon = Icons.Filled.ErrorOutline, error = true)
             Spacer(Modifier.height(16.dp))
             Text(
@@ -972,6 +1021,7 @@ private fun IllustrationBadge(
 @Composable
 private fun InfoCard(
     modifier: Modifier = Modifier,
+    accentColor: Color? = null,
     content: @Composable () -> Unit,
 ) {
     AnimatedVisibility(
@@ -990,7 +1040,7 @@ private fun InfoCard(
             shadowElevation = 10.dp,
             border = BorderStroke(
                 1.dp,
-                MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f),
+                accentColor?.copy(alpha = 0.5f) ?: MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f),
             ),
         ) {
             Column(

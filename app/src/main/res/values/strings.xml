@@ -75,4 +75,9 @@
     <string name="ocr_missing_desc">The data for %1$s is not yet downloaded. Would you like to download it now for offline OCR?</string>
     <string name="action_cancel">Cancel</string>
     <string name="action_download">Download</string>
+
+    <string name="readiness_ready_title">All set!</string>
+    <string name="readiness_pending_title">Almost there</string>
+    <string name="readiness_ready_desc">TextGrab is ready to use. Open any app and tap the tile to grab text.</string>
+    <string name="readiness_pending_desc">Complete the setup steps below to start grabbing text from your screen.</string>
 </resources>

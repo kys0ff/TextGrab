@@ -75,4 +75,9 @@
     <string name="ocr_missing_desc">بيانات %1$s لم يتم تنزيلها بعد. هل ترغب في تنزيلها الآن للتعرف الضوئي على النصوص بدون إنترنت؟</string>
     <string name="action_cancel">إلغاء</string>
     <string name="action_download">تنزيل</string>
+
+    <string name="readiness_ready_title">جاهز تمامًا!</string>
+    <string name="readiness_pending_title">أوشكت على الانتهاء</string>
+    <string name="readiness_ready_desc">تكست غراب جاهز للاستخدام. افتح أي تطبيق واضغط على المربع لالتقاط النص.</string>
+    <string name="readiness_pending_desc">أكمل خطوات الإعداد أدناه لبدء التقاط النص من شاشتك.</string>
 </resources>

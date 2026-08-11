@@ -7,7 +7,7 @@ import off.kys.textgrab.ocr.OcrPackageRepository
 
 /**
  * Minimal manual dependency container. Everything TextGrab shares between its
- * activities, services and the tile lives here, initialised once from
+ * activities, services and the tile lives here, initialized once from
  * [TextGrabApp.onCreate]. Keeps the app free of a DI framework for its size.
  */
 object ServiceLocator {
