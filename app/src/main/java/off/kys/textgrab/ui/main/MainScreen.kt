@@ -70,6 +70,7 @@ fun MainScreen(
     onClearHistory: () -> Unit,
     onCopyHistory: (String) -> Unit,
     onScanNow: () -> Unit,
+    onOpenOcrPackages: () -> Unit,
 ) {
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     val ready = permissions.accessibility && permissions.overlay
@@ -164,8 +165,8 @@ fun MainScreen(
                             description = stringResource(R.string.perm_projection_desc),
                             granted = true,
                             isInfoOnly = true,
-                            actionLabel = null,
-                            onAction = {},
+                            actionLabel = stringResource(R.string.ocr_download_title),
+                            onAction = onOpenOcrPackages,
                         )
                     }
                 }
@@ -266,15 +267,12 @@ private fun PermissionRow(
                     style = MaterialTheme.typography.bodySmall,
                 )
 
-                when {
-                    isInfoOnly -> Unit
-                    actionLabel != null && !granted -> {
-                        TextButton(
-                            onClick = onAction,
-                            modifier = Modifier.padding(top = 4.dp)
-                        ) {
-                            Text(actionLabel)
-                        }
+                if (actionLabel != null && (!granted || isInfoOnly)) {
+                    TextButton(
+                        onClick = onAction,
+                        modifier = Modifier.padding(top = 4.dp)
+                    ) {
+                        Text(actionLabel)
                     }
                 }
             }

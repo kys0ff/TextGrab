@@ -1,8 +1,10 @@
 package off.kys.textgrab.ocr
 
 import android.content.Context
+import off.kys.textgrab.ocr.model.TesseractVersion
 import java.io.File
 import java.io.FileOutputStream
+import java.net.URL
 
 /**
  * Manages Tesseract language data files.
@@ -10,36 +12,90 @@ import java.io.FileOutputStream
  */
 object TessDataStore {
 
-    private const val TESS_DATA_DIR = "tessdata"
+    private const val TESS_DATA_ROOT = "ocr_data"
 
     /**
-     * Ensures that the traineddata for every language in [tessLanguage] (a
-     * Tesseract language string such as "eng", "ara" or "ara+eng") is available
-     * in the internal storage.
-     * Returns the absolute path to the directory containing 'tessdata/'.
+     * Returns the absolute path to the directory containing 'tessdata/' for the
+     * specific engine version.
      */
-    fun getTessDataPath(context: Context, tessLanguage: String): String {
-        val dir = File(context.filesDir, TESS_DATA_DIR)
-        if (!dir.exists()) {
-            dir.mkdirs()
+    fun getTessDataPath(context: Context, version: TesseractVersion): String {
+        val versionDir = File(context.filesDir, "$TESS_DATA_ROOT/${version.name.lowercase()}")
+        val tessDir = File(versionDir, "tessdata")
+        if (!tessDir.exists()) {
+            tessDir.mkdirs()
         }
-
-        for (language in tessLanguage.split('+')) {
-            val file = File(dir, "$language.traineddata")
-            if (!file.exists()) {
-                copyFromAssets(context, file)
-            }
-        }
-
-        // Tesseract init() expects the path to the directory *containing* 'tessdata'
-        return context.filesDir.absolutePath
+        return versionDir.absolutePath
     }
 
-    private fun copyFromAssets(context: Context, destination: File) {
-        context.assets.open("$TESS_DATA_DIR/${destination.name}").use { input ->
-            FileOutputStream(destination).use { output ->
-                input.copyTo(output)
+    fun isInstalled(context: Context, tessCode: String, version: TesseractVersion): Boolean {
+        val file = File(getTessDataPath(context, version), "tessdata/$tessCode.traineddata")
+        return file.exists() && file.length() > 0
+    }
+
+    fun hasAnyInstalled(context: Context, tessCode: String): Boolean {
+        return TesseractVersion.entries.any { isInstalled(context, it, tessCode) }
+    }
+
+    fun isInstalled(context: Context, version: TesseractVersion, tessCode: String): Boolean {
+        val file = File(getTessDataPath(context, version), "tessdata/$tessCode.traineddata")
+        return file.exists() && file.length() > 0
+    }
+
+    suspend fun download(
+        context: Context,
+        tessCode: String,
+        version: TesseractVersion,
+        url: String,
+        onProgress: (Float) -> Unit
+    ): Boolean = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+        val dest = File(getTessDataPath(context, version), "tessdata/$tessCode.traineddata")
+        val tempFile = File(dest.absolutePath + ".tmp")
+        
+        try {
+            URL(url).openConnection().apply {
+                connectTimeout = 10000
+                readTimeout = 10000
+            }.getInputStream().use { input ->
+                val total = try { URL(url).openConnection().contentLengthLong } catch (_: Exception) { -1L }
+                var downloaded = 0L
+                FileOutputStream(tempFile).use { output ->
+                    val buffer = ByteArray(8192)
+                    var bytes = input.read(buffer)
+                    while (bytes >= 0) {
+                        output.write(buffer, 0, bytes)
+                        downloaded += bytes
+                        if (total > 0) onProgress(downloaded.toFloat() / total)
+                        bytes = input.read(buffer)
+                    }
+                }
             }
+            if (tempFile.renameTo(dest)) {
+                return@withContext true
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        } finally {
+            if (tempFile.exists()) tempFile.delete()
         }
+        false
+    }
+
+    fun delete(context: Context, tessCode: String, version: TesseractVersion): Boolean {
+        val file = File(getTessDataPath(context, version), "tessdata/$tessCode.traineddata")
+        return if (file.exists()) file.delete() else false
+    }
+
+    /**
+     * Legacy method for the current OcrEngine until it's updated to be version-aware.
+     * Defaults to STANDARD if not found elsewhere.
+     */
+    fun getLegacyDataPath(context: Context, tessLanguage: String): String {
+        // Find which version has these languages, prioritizing BEST models
+        val versions = TesseractVersion.entries.reversed()
+        for (v in versions) {
+            val allPresent = tessLanguage.split('+').all { isInstalled(context, it, v) }
+            if (allPresent) return getTessDataPath(context, v)
+        }
+        return getTessDataPath(context, TesseractVersion.STANDARD)
     }
 }

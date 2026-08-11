@@ -1,6 +1,5 @@
 package off.kys.textgrab.overlay.ui
 
-import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
@@ -13,6 +12,7 @@ import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectDragGestures
@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -33,6 +34,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -46,8 +50,11 @@ import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Image
+import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.SearchOff
+import androidx.compose.material.icons.filled.SwapVert
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Button
@@ -66,9 +73,9 @@ import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -82,12 +89,15 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
@@ -98,7 +108,9 @@ import off.kys.textgrab.R
 import off.kys.textgrab.core.model.ExtractionMode
 import off.kys.textgrab.core.model.GrabbedText
 import off.kys.textgrab.core.model.OcrLanguage
+import off.kys.textgrab.core.model.OverlayCommand
 import off.kys.textgrab.core.model.OverlayStatus
+import off.kys.textgrab.ocr.TessDataStore
 import off.kys.textgrab.overlay.OverlayBus
 import off.kys.textgrab.ui.theme.TextGrabTheme
 import kotlin.math.roundToInt
@@ -153,11 +165,14 @@ fun OverlayScreen(
     onSwitchLanguage: (OcrLanguage) -> Unit,
     onRescan: () -> Unit,
     onClose: () -> Unit,
+    onOpenDownload: () -> Unit,
 ) {
+    val context = LocalContext.current
     val elements by OverlayBus.elements.collectAsState()
     val mode by OverlayBus.mode.collectAsState()
     val ocrLanguage by OverlayBus.ocrLanguage.collectAsState()
     val status by OverlayBus.status.collectAsState()
+    val isScrollMode by OverlayBus.isScrollMode.collectAsState()
 
     var multiSelect by remember { mutableStateOf(false) }
     val selected = remember { mutableStateListOf<Long>() }
@@ -173,146 +188,219 @@ fun OverlayScreen(
     var actionBarOffsetY by remember { mutableFloatStateOf(0f) }
     var actionBarSize by remember { mutableStateOf(IntSize.Zero) }
 
-    LaunchedEffect(elements) { selected.clear() }
+    var missingLanguageDialog by remember { mutableStateOf<OcrLanguage?>(null) }
 
-    BackHandler { /* CONSUMED */ }
+    missingLanguageDialog?.let { lang ->
+        AlertDialog(
+            onDismissRequest = { missingLanguageDialog = null },
+            title = { Text(stringResource(R.string.ocr_missing_title)) },
+            text = { Text(stringResource(R.string.ocr_missing_desc, stringResource(lang.toDisplayString()))) },
+            confirmButton = {
+                TextButton(onClick = {
+                    missingLanguageDialog = null
+                    onOpenDownload()
+                }) {
+                    Text(stringResource(R.string.action_download))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { missingLanguageDialog = null }) {
+                    Text(stringResource(R.string.action_cancel))
+                }
+            }
+        )
+    }
 
     TextGrabTheme {
-        BoxWithConstraints(Modifier.fillMaxSize()) {
-            val density = LocalDensity.current
-            val containerWidthPx = with(density) { maxWidth.toPx() }
-            val containerHeightPx = with(density) { maxHeight.toPx() }
-            val minVisiblePx = with(density) { MinVisibleEdge.toPx() }
-
-            // Dim scrim with a soft vertical gradient so content near the
-            // header/action bar reads clearly without a flat, harsh overlay
-            Box(
-                Modifier
-                    .fillMaxSize()
-                    .background(
-                        Brush.verticalGradient(
-                            0f to Color.Black.copy(alpha = 0.55f),
-                            0.15f to Color.Black.copy(alpha = 0.40f),
-                            0.85f to Color.Black.copy(alpha = 0.40f),
-                            1f to Color.Black.copy(alpha = 0.55f),
-                        ),
-                    )
-                    .pointerInput(Unit) { detectTapGestures(onTap = { /* CONSUMED */ }) },
-            )
-
-            // Text Bounding Boxes
-            elements.forEach { element ->
-                TextBox(
-                    element = element,
-                    selected = selected.contains(element.id),
-                    multiSelect = multiSelect,
-                    widthDp = with(density) { element.width.toDp() },
-                    heightDp = with(density) { element.height.toDp() },
-                    onSelect = {
-                        if (!multiSelect) multiSelect = true
-                        if (selected.contains(element.id)) {
-                            selected.remove(element.id)
-                        } else {
-                            selected.add(element.id)
-                        }
-                    },
-                )
-            }
-
-            // Draggable & Collapsible Header Control Container
-            OverlayHeader(
-                mode = mode,
-                ocrLanguage = ocrLanguage,
-                isExpanded = isExpanded,
-                modifier = Modifier
-                    .offset { IntOffset(headerOffsetX.roundToInt(), headerOffsetY.roundToInt()) }
-                    .align(Alignment.TopCenter)
-                    .onSizeChanged { headerSize = it }
-                    .pointerInput(Unit) {
-                        detectDragGestures { change, dragAmount ->
-                            change.consume()
-                            val baseLeft = (containerWidthPx - headerSize.width) / 2f
-                            val baseTop = 0f
-                            headerOffsetX = dragClamp(
-                                current = headerOffsetX,
-                                delta = dragAmount.x,
-                                basePosition = baseLeft,
-                                panelSize = headerSize.width.toFloat(),
-                                containerSize = containerWidthPx,
-                                minVisible = minVisiblePx,
-                            )
-                            headerOffsetY = dragClamp(
-                                current = headerOffsetY,
-                                delta = dragAmount.y,
-                                basePosition = baseTop,
-                                panelSize = headerSize.height.toFloat(),
-                                containerSize = containerHeightPx,
-                                minVisible = minVisiblePx,
-                            )
-                        }
-                    },
-                onToggleExpand = { isExpanded = !isExpanded },
-                onSwitchMode = onSwitchMode,
-                onSwitchLanguage = onSwitchLanguage,
-                onRescan = onRescan,
-                onClose = onClose,
-            )
-
-            StatusCenter(
-                status = status,
-                mode = mode,
-                modifier = Modifier.align(Alignment.Center),
-                onSwitchToOcr = { onSwitchMode(ExtractionMode.OCR) },
-                onRescan = onRescan,
-            )
-
-            AnimatedVisibility(
-                visible = elements.isNotEmpty(),
-                modifier = Modifier.align(Alignment.BottomCenter),
-                enter = fadeIn() + expandVertically(),
-                exit = fadeOut() + shrinkVertically(),
+        AnimatedContent(
+            targetState = isScrollMode,
+            transitionSpec = {
+                (fadeIn() + scaleIn(initialScale = 0.95f)) togetherWith
+                    (fadeOut() + scaleOut(targetScale = 0.95f))
+            },
+            label = "scrollModeTransition",
+            modifier = Modifier.animateContentSize()
+        ) { scrolling ->
+            BoxWithConstraints(
+                modifier = if (scrolling) Modifier.wrapContentSize() else Modifier.fillMaxSize()
             ) {
-                OverlayActionBar(
-                    multiSelect = multiSelect,
-                    selectedCount = selected.size,
-                    modifier = Modifier
-                        .offset {
-                            IntOffset(actionBarOffsetX.roundToInt(), actionBarOffsetY.roundToInt())
+                val density = LocalDensity.current
+                val containerWidthPx = with(density) { maxWidth.toPx() }
+                val containerHeightPx = with(density) { maxHeight.toPx() }
+                val minVisiblePx = with(density) { MinVisibleEdge.toPx() }
+
+                if (scrolling) {
+                    // Minimized "Resume" button for Scroll Mode
+                    Surface(
+                        modifier = Modifier
+                            .padding(24.dp)
+                            .navigationBarsPadding(),
+                        shape = RoundedCornerShape(24.dp),
+                        color = MaterialTheme.colorScheme.primaryContainer,
+                        tonalElevation = 6.dp,
+                        shadowElevation = 12.dp,
+                        onClick = { OverlayBus.send(OverlayCommand.SetScrollMode(false)) }
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 20.dp, vertical = 12.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Icon(
+                                Icons.Filled.DocumentScanner,
+                                contentDescription = null,
+                                modifier = Modifier.size(20.dp)
+                            )
+                            Text(
+                                stringResource(R.string.overlay_scroll_done),
+                                style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold)
+                            )
                         }
-                        .onSizeChanged { actionBarSize = it }
-                        .pointerInput(Unit) {
-                            detectDragGestures { change, dragAmount ->
-                                change.consume()
-                                val baseLeft = (containerWidthPx - actionBarSize.width) / 2f
-                                val baseTop = containerHeightPx - actionBarSize.height
-                                actionBarOffsetX = dragClamp(
-                                    current = actionBarOffsetX,
-                                    delta = dragAmount.x,
-                                    basePosition = baseLeft,
-                                    panelSize = actionBarSize.width.toFloat(),
-                                    containerSize = containerWidthPx,
-                                    minVisible = minVisiblePx,
-                                )
-                                actionBarOffsetY = dragClamp(
-                                    current = actionBarOffsetY,
-                                    delta = dragAmount.y,
-                                    basePosition = baseTop,
-                                    panelSize = actionBarSize.height.toFloat(),
-                                    containerSize = containerHeightPx,
-                                    minVisible = minVisiblePx,
-                                )
+                    }
+                } else {
+                    // Dim scrim with a soft vertical gradient so content near the
+                    // header/action bar reads clearly without a flat, harsh overlay
+                    Box(
+                        Modifier
+                            .fillMaxSize()
+                            .background(
+                                Brush.verticalGradient(
+                                    0f to Color.Black.copy(alpha = 0.55f),
+                                    0.15f to Color.Black.copy(alpha = 0.40f),
+                                    0.85f to Color.Black.copy(alpha = 0.40f),
+                                    1f to Color.Black.copy(alpha = 0.55f),
+                                ),
+                            )
+                            .pointerInput(Unit) { detectTapGestures(onTap = { /* CONSUMED */ }) },
+                    )
+
+                    // Text Bounding Boxes
+                    elements.forEach { element ->
+                        TextBox(
+                            element = element,
+                            selected = selected.contains(element.id),
+                            multiSelect = multiSelect,
+                            widthDp = with(density) { element.width.toDp() },
+                            heightDp = with(density) { element.height.toDp() },
+                            onSelect = {
+                                if (!multiSelect) multiSelect = true
+                                if (selected.contains(element.id)) {
+                                    selected.remove(element.id)
+                                } else {
+                                    selected.add(element.id)
+                                }
+                            },
+                        )
+                    }
+
+                    // Draggable & Collapsible Header Control Container
+                    OverlayHeader(
+                        mode = mode,
+                        ocrLanguage = ocrLanguage,
+                        isExpanded = isExpanded,
+                        modifier = Modifier
+                            .offset { IntOffset(headerOffsetX.roundToInt(), headerOffsetY.roundToInt()) }
+                            .align(Alignment.TopCenter)
+                            .onSizeChanged { headerSize = it }
+                            .pointerInput(Unit) {
+                                detectDragGestures { change, dragAmount ->
+                                    change.consume()
+                                    val baseLeft = (containerWidthPx - headerSize.width) / 2f
+                                    val baseTop = 0f
+                                    headerOffsetX = dragClamp(
+                                        current = headerOffsetX,
+                                        delta = dragAmount.x,
+                                        basePosition = baseLeft,
+                                        panelSize = headerSize.width.toFloat(),
+                                        containerSize = containerWidthPx,
+                                        minVisible = minVisiblePx,
+                                    )
+                                    headerOffsetY = dragClamp(
+                                        current = headerOffsetY,
+                                        delta = dragAmount.y,
+                                        basePosition = baseTop,
+                                        panelSize = headerSize.height.toFloat(),
+                                        containerSize = containerHeightPx,
+                                        minVisible = minVisiblePx,
+                                    )
+                                }
+                            },
+                        onToggleExpand = { isExpanded = !isExpanded },
+                        onSwitchMode = onSwitchMode,
+                        onSwitchLanguage = { lang ->
+                            val isInstalled = if (lang == OcrLanguage.BOTH) {
+                                TessDataStore.hasAnyInstalled(context, "eng") && TessDataStore.hasAnyInstalled(context, "ara")
+                            } else {
+                                TessDataStore.hasAnyInstalled(context, lang.toTessCode())
+                            }
+                            if (isInstalled) {
+                                onSwitchLanguage(lang)
+                            } else {
+                                missingLanguageDialog = lang
                             }
                         },
-                    onToggleSelect = {
-                        multiSelect = !multiSelect
-                        if (!multiSelect) selected.clear()
-                    },
-                    onCopySelected = {
-                        val texts = elements.filter { selected.contains(it.id) }.map { it.text }
-                        onCopyAll(texts, mode)
-                    },
-                    onCopyAll = { onCopyAll(elements.map { it.text }, mode) },
-                )
+                        onRescan = onRescan,
+                        onClose = onClose,
+                        onOpenDownload = onOpenDownload,
+                    )
+
+                    StatusCenter(
+                        status = status,
+                        mode = mode,
+                        modifier = Modifier.align(Alignment.Center),
+                        onSwitchToOcr = { onSwitchMode(ExtractionMode.OCR) },
+                        onRescan = onRescan,
+                    )
+
+                    AnimatedVisibility(
+                        visible = elements.isNotEmpty(),
+                        modifier = Modifier.align(Alignment.BottomCenter),
+                        enter = fadeIn() + expandVertically(),
+                        exit = fadeOut() + shrinkVertically(),
+                    ) {
+                        OverlayActionBar(
+                            multiSelect = multiSelect,
+                            selectedCount = selected.size,
+                            modifier = Modifier
+                                .offset {
+                                    IntOffset(actionBarOffsetX.roundToInt(), actionBarOffsetY.roundToInt())
+                                }
+                                .onSizeChanged { actionBarSize = it }
+                                .pointerInput(Unit) {
+                                    detectDragGestures { change, dragAmount ->
+                                        change.consume()
+                                        val baseLeft = (containerWidthPx - actionBarSize.width) / 2f
+                                        val baseTop = containerHeightPx - actionBarSize.height
+                                        actionBarOffsetX = dragClamp(
+                                            current = actionBarOffsetX,
+                                            delta = dragAmount.x,
+                                            basePosition = baseLeft,
+                                            panelSize = actionBarSize.width.toFloat(),
+                                            containerSize = containerWidthPx,
+                                            minVisible = minVisiblePx,
+                                        )
+                                        actionBarOffsetY = dragClamp(
+                                            current = actionBarOffsetY,
+                                            delta = dragAmount.y,
+                                            basePosition = baseTop,
+                                            panelSize = actionBarSize.height.toFloat(),
+                                            containerSize = containerHeightPx,
+                                            minVisible = minVisiblePx,
+                                        )
+                                    }
+                                },
+                            onToggleSelect = {
+                                multiSelect = !multiSelect
+                                if (!multiSelect) selected.clear()
+                            },
+                            onCopySelected = {
+                                val texts = elements.filter { selected.contains(it.id) }.map { it.text }
+                                onCopyAll(texts, mode)
+                            },
+                            onCopyAll = { onCopyAll(elements.map { it.text }, mode) },
+                        )
+                    }
+                }
             }
         }
     }
@@ -406,6 +494,7 @@ private fun OverlayHeader(
     onSwitchLanguage: (OcrLanguage) -> Unit,
     onRescan: () -> Unit,
     onClose: () -> Unit,
+    onOpenDownload: () -> Unit,
 ) {
     val scheme = MaterialTheme.colorScheme
 
@@ -419,7 +508,7 @@ private fun OverlayHeader(
         color = scheme.surfaceContainerHigh,
         tonalElevation = 3.dp,
         shadowElevation = 6.dp,
-        border = androidx.compose.foundation.BorderStroke(
+        border = BorderStroke(
             1.dp,
             scheme.outlineVariant.copy(alpha = 0.6f)
         ),
@@ -494,6 +583,17 @@ private fun OverlayHeader(
                     )
                 }
                 Spacer(Modifier.width(6.dp))
+                FilledTonalIconButton(
+                    onClick = { OverlayBus.send(OverlayCommand.SetScrollMode(true)) },
+                    modifier = Modifier.size(36.dp)
+                ) {
+                    Icon(
+                        Icons.Filled.SwapVert,
+                        contentDescription = stringResource(R.string.overlay_scroll),
+                        modifier = Modifier.size(18.dp),
+                    )
+                }
+                Spacer(Modifier.width(6.dp))
                 FilledTonalIconButton(onClick = onRescan, modifier = Modifier.size(36.dp)) {
                     Icon(
                         Icons.Filled.Refresh,
@@ -554,32 +654,98 @@ private fun OverlayHeader(
                     AnimatedVisibility(visible = mode == ExtractionMode.OCR) {
                         Column {
                             Spacer(Modifier.height(8.dp))
-                            SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
-                                SegmentedButton(
-                                    selected = ocrLanguage == OcrLanguage.LATIN,
-                                    onClick = { onSwitchLanguage(OcrLanguage.LATIN) },
-                                    shape = SegmentedButtonDefaults.itemShape(index = 0, count = 3),
-                                    label = { Text(stringResource(R.string.ocr_lang_latin)) },
-                                )
-                                SegmentedButton(
-                                    selected = ocrLanguage == OcrLanguage.ARABIC,
-                                    onClick = { onSwitchLanguage(OcrLanguage.ARABIC) },
-                                    shape = SegmentedButtonDefaults.itemShape(index = 1, count = 3),
-                                    label = { Text(stringResource(R.string.ocr_lang_arabic)) },
-                                )
-                                SegmentedButton(
-                                    selected = ocrLanguage == OcrLanguage.BOTH,
-                                    onClick = { onSwitchLanguage(OcrLanguage.BOTH) },
-                                    shape = SegmentedButtonDefaults.itemShape(index = 2, count = 3),
-                                    label = { Text(stringResource(R.string.ocr_lang_both)) },
-                                )
-                            }
+                            LanguageSelector(
+                                selected = ocrLanguage,
+                                onSelect = onSwitchLanguage,
+                                onOpenDownload = onOpenDownload
+                            )
                         }
                     }
                 }
             }
         }
     }
+}
+
+@Composable
+private fun LanguageSelector(
+    selected: OcrLanguage,
+    onSelect: (OcrLanguage) -> Unit,
+    onOpenDownload: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val context = LocalContext.current
+    LazyRow(
+        modifier = modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        contentPadding = PaddingValues(vertical = 4.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        items(OcrLanguage.entries) { lang ->
+            val isInstalled = remember(lang) {
+                if (lang == OcrLanguage.BOTH) {
+                    TessDataStore.hasAnyInstalled(context, "eng") && TessDataStore.hasAnyInstalled(context, "ara")
+                } else {
+                    TessDataStore.hasAnyInstalled(context, lang.toTessCode())
+                }
+            }
+            
+            FilterChip(
+                selected = selected == lang,
+                onClick = { onSelect(lang) },
+                label = { 
+                    Text(
+                        stringResource(lang.toDisplayString()),
+                        style = MaterialTheme.typography.labelSmall
+                    ) 
+                },
+                leadingIcon = if (!isInstalled) {
+                    { Icon(Icons.Default.ErrorOutline, contentDescription = null, modifier = Modifier.size(16.dp)) }
+                } else null,
+                colors = FilterChipDefaults.filterChipColors(
+                    selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                    selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                    selectedLeadingIconColor = MaterialTheme.colorScheme.error,
+                    iconColor = MaterialTheme.colorScheme.error
+                )
+            )
+        }
+
+        item {
+            FilledTonalIconButton(
+                onClick = onOpenDownload,
+                modifier = Modifier.size(32.dp)
+            ) {
+                Icon(
+                    Icons.Default.Language,
+                    contentDescription = stringResource(R.string.ocr_download_title),
+                    modifier = Modifier.size(16.dp)
+                )
+            }
+        }
+    }
+}
+
+private fun OcrLanguage.toDisplayString(): Int = when (this) {
+    OcrLanguage.LATIN -> R.string.ocr_lang_latin
+    OcrLanguage.ARABIC -> R.string.ocr_lang_arabic
+    OcrLanguage.FRENCH -> R.string.ocr_lang_french
+    OcrLanguage.GERMAN -> R.string.ocr_lang_german
+    OcrLanguage.CHINESE -> R.string.ocr_lang_chinese
+    OcrLanguage.JAPANESE -> R.string.ocr_lang_japanese
+    OcrLanguage.KOREAN -> R.string.ocr_lang_korean
+    OcrLanguage.BOTH -> R.string.ocr_lang_both
+}
+
+private fun OcrLanguage.toTessCode(): String = when (this) {
+    OcrLanguage.LATIN -> "eng"
+    OcrLanguage.ARABIC -> "ara"
+    OcrLanguage.FRENCH -> "fra"
+    OcrLanguage.GERMAN -> "deu"
+    OcrLanguage.CHINESE -> "chi_sim"
+    OcrLanguage.JAPANESE -> "jpn"
+    OcrLanguage.KOREAN -> "kor"
+    OcrLanguage.BOTH -> "ara+eng"
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -603,7 +769,7 @@ private fun OverlayActionBar(
         color = scheme.surfaceContainerHigh,
         tonalElevation = 3.dp,
         shadowElevation = 8.dp,
-        border = androidx.compose.foundation.BorderStroke(
+        border = BorderStroke(
             1.dp,
             scheme.outlineVariant.copy(alpha = 0.6f)
         ),
@@ -697,6 +863,20 @@ private fun StatusCenter(
     onRescan: () -> Unit,
 ) {
     when (status) {
+        OverlayStatus.LoadingModel -> InfoCard(modifier) {
+            CircularProgressIndicator(
+                Modifier.size(36.dp),
+                strokeWidth = 3.dp,
+                color = MaterialTheme.colorScheme.primary,
+            )
+            Spacer(Modifier.height(16.dp))
+            Text(
+                stringResource(R.string.overlay_loading_model),
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurface,
+            )
+        }
+
         OverlayStatus.Scanning -> InfoCard(modifier) {
             CircularProgressIndicator(
                 Modifier.size(36.dp),
@@ -723,7 +903,7 @@ private fun StatusCenter(
                 message,
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurface,
-                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                textAlign = TextAlign.Center,
             )
             Spacer(Modifier.height(16.dp))
             if (mode == ExtractionMode.ACCESSIBILITY) {
@@ -762,7 +942,7 @@ private fun StatusCenter(
                 status.message,
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.error,
-                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                textAlign = TextAlign.Center,
             )
         }
 
@@ -772,7 +952,7 @@ private fun StatusCenter(
 
 @Composable
 private fun IllustrationBadge(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    icon: ImageVector,
     error: Boolean = false
 ) {
     val scheme = MaterialTheme.colorScheme
@@ -808,7 +988,7 @@ private fun InfoCard(
             color = MaterialTheme.colorScheme.surfaceContainerHigh,
             tonalElevation = 4.dp,
             shadowElevation = 10.dp,
-            border = androidx.compose.foundation.BorderStroke(
+            border = BorderStroke(
                 1.dp,
                 MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f),
             ),

@@ -14,7 +14,9 @@ enum class ExtractionMode { ACCESSIBILITY, OCR }
 /**
  * Supported OCR scripts.
  */
-enum class OcrLanguage { LATIN, ARABIC, BOTH }
+enum class OcrLanguage {
+    LATIN, ARABIC, FRENCH, GERMAN, CHINESE, JAPANESE, KOREAN, BOTH
+}
 
 /**
  * A single selectable text element positioned in **screen pixel** coordinates.
@@ -57,6 +59,9 @@ sealed interface OverlayCommand {
     /** Re-run the current mode's scan. */
     data object Rescan : OverlayCommand
 
+    /** Toggle scroll-passthrough mode. */
+    data class SetScrollMode(val enabled: Boolean) : OverlayCommand
+
     /** Display the overlay window with whatever results are currently in the bus.
      *  Emitted by the OCR service once recognition finishes. */
     data object ShowResults : OverlayCommand
@@ -68,6 +73,7 @@ sealed interface OverlayCommand {
 /** Coarse overlay state used to drive the header / empty / error UI. */
 sealed interface OverlayStatus {
     data object Idle : OverlayStatus
+    data object LoadingModel : OverlayStatus
     data object Scanning : OverlayStatus
     data class Ready(val count: Int) : OverlayStatus
     data object Empty : OverlayStatus

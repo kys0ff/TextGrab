@@ -112,6 +112,15 @@ class ScreenCaptureService : Service() {
     private fun runOcr(bitmap: Bitmap) {
         scope.launch {
             val language = OverlayBus.ocrLanguage.value
+            
+            // Show the overlay immediately with a loading state while Tesseract initializes/runs
+            if (ocr.isLoaded(language)) {
+                OverlayBus.status.value = OverlayStatus.Scanning
+            } else {
+                OverlayBus.status.value = OverlayStatus.LoadingModel
+            }
+            OverlayBus.send(OverlayCommand.ShowResults)
+
             val results = runCatching { 
                 ocr.recognize(bitmap, this@ScreenCaptureService, language) 
             }.getOrDefault(emptyList())

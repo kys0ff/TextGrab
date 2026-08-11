@@ -35,6 +35,10 @@ class OcrEngine {
     private var tess: TessBaseAPI? = null
     private var tessLanguage: String? = null
 
+    fun isLoaded(language: OcrLanguage): Boolean {
+        return tessLanguage == language.toTessLanguage() && tess != null
+    }
+
     suspend fun recognize(
         bitmap: Bitmap,
         context: Context,
@@ -81,7 +85,7 @@ class OcrEngine {
         }
 
         val newTess = TessBaseAPI()
-        val dataPath = TessDataStore.getTessDataPath(context, tessLang)
+        val dataPath = TessDataStore.getLegacyDataPath(context, tessLang)
 
         // Use LSTM engine for better accuracy with modern .traineddata files.
         if (!newTess.init(dataPath, tessLang, TessBaseAPI.OEM_LSTM_ONLY)) {
@@ -237,6 +241,11 @@ class OcrEngine {
 private fun OcrLanguage.toTessLanguage(): String = when (this) {
     OcrLanguage.LATIN -> "eng"
     OcrLanguage.ARABIC -> "ara"
+    OcrLanguage.FRENCH -> "fra"
+    OcrLanguage.GERMAN -> "deu"
+    OcrLanguage.CHINESE -> "chi_sim"
+    OcrLanguage.JAPANESE -> "jpn"
+    OcrLanguage.KOREAN -> "kor"
     OcrLanguage.BOTH -> "ara+eng"
 }
 

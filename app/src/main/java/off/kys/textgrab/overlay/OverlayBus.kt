@@ -33,6 +33,9 @@ object OverlayBus {
     /** The active OCR language. */
     val ocrLanguage = MutableStateFlow(OcrLanguage.BOTH)
 
+    /** Whether the user is currently scrolling the background app. */
+    val isScrollMode = MutableStateFlow(false)
+
     /** Coarse status driving the overlay header. */
     val status = MutableStateFlow<OverlayStatus>(OverlayStatus.Idle)
 

@@ -74,6 +74,14 @@ class TextGrabAccessibilityService : AccessibilityService() {
             onClose = {
                 OverlayBus.send(OverlayCommand.Hide)
             },
+            onOpenDownload = {
+                startActivity(
+                    Intent(this, off.kys.textgrab.MainActivity::class.java)
+                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                        .putExtra("open_ocr_packages", true)
+                )
+                OverlayBus.send(OverlayCommand.Hide)
+            }
         )
 
         scope.launch {
@@ -115,6 +123,15 @@ class TextGrabAccessibilityService : AccessibilityService() {
 
         OverlayCommand.Rescan ->
             startScan(OverlayBus.mode.value)
+
+        is OverlayCommand.SetScrollMode -> {
+            OverlayBus.isScrollMode.value = command.enabled
+            overlay?.updateScrollMode(command.enabled)
+            if (!command.enabled) {
+                startScan(OverlayBus.mode.value)
+            }
+            Unit
+        }
 
         OverlayCommand.ShowResults ->
             showOverlay()

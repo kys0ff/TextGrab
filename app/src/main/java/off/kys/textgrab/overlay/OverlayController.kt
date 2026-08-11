@@ -35,6 +35,7 @@ class OverlayController(
     private val onSwitchLanguage: (OcrLanguage) -> Unit,
     private val onRescan: () -> Unit,
     private val onClose: () -> Unit,
+    private val onOpenDownload: () -> Unit,
 ) {
 
     private val windowManager = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
@@ -42,21 +43,28 @@ class OverlayController(
     private var composeView: ComposeView? = null
     private var attached = false
 
-    private fun buildLayoutParams(): WindowManager.LayoutParams {
-        val type =
-            WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
+    private fun buildLayoutParams(isScrollMode: Boolean): WindowManager.LayoutParams {
+        val type = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
+
+        val (w, h) = if (isScrollMode) {
+            WindowManager.LayoutParams.WRAP_CONTENT to WindowManager.LayoutParams.WRAP_CONTENT
+        } else {
+            WindowManager.LayoutParams.MATCH_PARENT to WindowManager.LayoutParams.MATCH_PARENT
+        }
+
+        val flags = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
+            WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
+            WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS or
+            WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED
 
         return WindowManager.LayoutParams(
-            WindowManager.LayoutParams.MATCH_PARENT,
-            WindowManager.LayoutParams.MATCH_PARENT,
+            w,
+            h,
             type,
-            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
-                WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
-                WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS or
-                WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED,
+            if (isScrollMode) flags or WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL else flags,
             PixelFormat.TRANSLUCENT,
         ).apply {
-            gravity = Gravity.TOP or Gravity.START
+            gravity = if (isScrollMode) Gravity.BOTTOM or Gravity.END else Gravity.TOP or Gravity.START
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                     layoutInDisplayCutoutMode =
@@ -70,8 +78,14 @@ class OverlayController(
         if (attached) return
         val view = composeView ?: createView().also { composeView = it }
         lifecycleOwner.moveToResumed()
-        runCatching { windowManager.addView(view, buildLayoutParams()) }
+        runCatching { windowManager.addView(view, buildLayoutParams(OverlayBus.isScrollMode.value)) }
             .onSuccess { attached = true }
+    }
+
+    fun updateScrollMode(enabled: Boolean) {
+        val view = composeView ?: return
+        if (!attached) return
+        runCatching { windowManager.updateViewLayout(view, buildLayoutParams(enabled)) }
     }
 
     fun hide() {
@@ -101,6 +115,7 @@ class OverlayController(
                     onSwitchLanguage = onSwitchLanguage,
                     onRescan = onRescan,
                     onClose = onClose,
+                    onOpenDownload = onOpenDownload,
                 )
             }
         }
