@@ -19,14 +19,15 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import off.kys.textgrab.MainActivity
 import off.kys.textgrab.R
-import off.kys.textgrab.ServiceLocator
 import off.kys.textgrab.ocr.model.DownloadState
 import off.kys.textgrab.ocr.model.TesseractVersion
+import org.koin.android.ext.android.inject
 
 class OcrDownloadService : Service() {
 
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
     private var downloadJob: Job? = null
+    private val repository: OcrPackageRepository by inject()
 
     override fun onBind(intent: Intent?): IBinder? = null
 
@@ -63,7 +64,7 @@ class OcrDownloadService : Service() {
                 onProgress = { progress ->
                     val progressInt = (progress * 100).toInt()
                     updateNotification(displayName, "$progressInt%", progressInt)
-                    ServiceLocator.ocrPackages.updateDownloadState(
+                    repository.updateDownloadState(
                         "${tessCode}_$version",
                         DownloadState.Downloading(progress)
                     )
@@ -71,11 +72,11 @@ class OcrDownloadService : Service() {
             )
 
             if (success) {
-                ServiceLocator.ocrPackages.updateDownloadState("${tessCode}_$version", DownloadState.Downloaded)
-                ServiceLocator.ocrPackages.refreshInstallationStates()
+                repository.updateDownloadState("${tessCode}_$version", DownloadState.Downloaded)
+                repository.refreshInstallationStates()
                 showCompletionNotification(displayName, true)
             } else {
-                ServiceLocator.ocrPackages.updateDownloadState("${tessCode}_$version", DownloadState.Error("Download failed"))
+                repository.updateDownloadState("${tessCode}_$version", DownloadState.Error("Download failed"))
                 showCompletionNotification(displayName, false)
             }
             stopForeground(STOP_FOREGROUND_DETACH)

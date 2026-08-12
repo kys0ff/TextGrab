@@ -10,17 +10,14 @@ import off.kys.textgrab.accessibility.TextGrabAccessibilityService
 
 /**
  * Central place for checking and requesting the three permissions TextGrab needs.
- * None of them can be granted programmatically — each check pairs with an intent
- * that deep-links to the relevant system settings screen.
  */
-object PermissionManager {
+class PermissionManager(private val context: Context) {
 
     /** SYSTEM_ALERT_WINDOW — required for the TYPE_APPLICATION_OVERLAY window. */
-    fun canDrawOverlays(context: Context): Boolean =
-        Settings.canDrawOverlays(context)
+    fun canDrawOverlays(): Boolean = Settings.canDrawOverlays(context)
 
     /** Whether our [TextGrabAccessibilityService] is currently enabled by the user. */
-    fun isAccessibilityEnabled(context: Context): Boolean {
+    fun isAccessibilityEnabled(): Boolean {
         val expected = ComponentName(context, TextGrabAccessibilityService::class.java)
         val enabled = Settings.Secure.getString(
             context.contentResolver,
@@ -35,14 +32,14 @@ object PermissionManager {
         return false
     }
 
-    fun openAccessibilitySettings(context: Context) {
+    fun openAccessibilitySettings() {
         context.startActivity(
             Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
         )
     }
 
-    fun openOverlaySettings(context: Context) {
+    fun openOverlaySettings() {
         context.startActivity(
             Intent(
                 Settings.ACTION_MANAGE_OVERLAY_PERMISSION,

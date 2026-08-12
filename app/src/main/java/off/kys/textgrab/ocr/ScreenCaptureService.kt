@@ -27,22 +27,19 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import off.kys.textgrab.R
-import off.kys.textgrab.ServiceLocator
 import off.kys.textgrab.core.model.ExtractionMode
 import off.kys.textgrab.core.model.OverlayCommand
 import off.kys.textgrab.core.model.OverlayStatus
 import off.kys.textgrab.overlay.OverlayBus
+import org.koin.android.ext.android.inject
 
 /**
- * Foreground service that snapshots the display via MediaProjection, runs a single
- * frame through [OcrEngine], publishes the results to [OverlayBus] and tears itself
- * down. Declared with `foregroundServiceType="mediaProjection"` and started only
- * from the (foreground) [MediaProjectionRequestActivity], as Android 14 requires.
+ * Foreground service that snapshots the display via MediaProjection.
  */
 class ScreenCaptureService : Service() {
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
-    private val ocr by lazy { ServiceLocator.ocr }
+    private val ocr: OcrEngine by inject()
     private val mainHandler = Handler(Looper.getMainLooper())
 
     private var projection: MediaProjection? = null
@@ -52,7 +49,6 @@ class ScreenCaptureService : Service() {
     override fun onBind(intent: Intent?): IBinder? = null
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        // Must become a foreground service *before* acquiring the projection (API 34).
         startAsForeground()
 
         val resultCode = intent?.getIntExtra(EXTRA_RESULT_CODE, Activity.RESULT_CANCELED)
@@ -102,7 +98,7 @@ class ScreenCaptureService : Service() {
 
         reader.setOnImageAvailableListener({ r ->
             val image = r.acquireLatestImage() ?: return@setOnImageAvailableListener
-            r.setOnImageAvailableListener(null, null) // one-shot capture
+            r.setOnImageAvailableListener(null, null)
             val bitmap = image.toBitmap(width, height)
             image.close()
             runOcr(bitmap)
@@ -113,7 +109,6 @@ class ScreenCaptureService : Service() {
         scope.launch {
             val language = OverlayBus.ocrLanguage.value
             
-            // Show the overlay immediately with a loading state while Tesseract initializes/runs
             if (ocr.isLoaded(language)) {
                 OverlayBus.status.value = OverlayStatus.Scanning
             } else {
@@ -204,7 +199,6 @@ class ScreenCaptureService : Service() {
     }
 }
 
-/** Converts a single RGBA_8888 [Image] to a cropped [Bitmap], handling row padding. */
 private fun Image.toBitmap(width: Int, height: Int): Bitmap {
     val plane = planes[0]
     val buffer = plane.buffer

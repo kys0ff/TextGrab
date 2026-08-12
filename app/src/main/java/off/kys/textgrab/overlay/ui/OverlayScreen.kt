@@ -1,5 +1,6 @@
 package off.kys.textgrab.overlay.ui
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
@@ -195,6 +196,34 @@ fun OverlayScreen(
     var actionBarSize by remember { mutableStateOf(IntSize.Zero) }
 
     var missingLanguageDialog by remember { mutableStateOf<OcrLanguage?>(null) }
+    var autoModeWarningDialog by remember { mutableStateOf(false) }
+
+    BackHandler {
+        onClose()
+    }
+
+    autoModeWarningDialog.let { show ->
+        if (show) {
+            AlertDialog(
+                onDismissRequest = { autoModeWarningDialog = false },
+                title = { Text(stringResource(R.string.ocr_auto_warning_title)) },
+                text = { Text(stringResource(R.string.ocr_auto_warning_desc)) },
+                confirmButton = {
+                    TextButton(onClick = {
+                        autoModeWarningDialog = false
+                        onSwitchLanguage(OcrLanguage.AUTO)
+                    }) {
+                        Text(stringResource(R.string.action_grant))
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { autoModeWarningDialog = false }) {
+                        Text(stringResource(R.string.action_cancel))
+                    }
+                }
+            )
+        }
+    }
 
     missingLanguageDialog?.let { lang ->
         AlertDialog(
@@ -334,6 +363,10 @@ fun OverlayScreen(
                         onToggleExpand = { isExpanded = !isExpanded },
                         onSwitchMode = onSwitchMode,
                         onSwitchLanguage = { lang ->
+                            if (lang == OcrLanguage.AUTO) {
+                                autoModeWarningDialog = true
+                                return@OverlayHeader
+                            }
                             val isInstalled = if (lang == OcrLanguage.BOTH) {
                                 TessDataStore.hasAnyInstalled(context, "eng") && TessDataStore.hasAnyInstalled(context, "ara")
                             } else {
@@ -716,10 +749,10 @@ private fun LanguageSelector(
     ) {
         items(OcrLanguage.entries) { lang ->
             val isInstalled = remember(lang) {
-                if (lang == OcrLanguage.BOTH) {
-                    TessDataStore.hasAnyInstalled(context, "eng") && TessDataStore.hasAnyInstalled(context, "ara")
-                } else {
-                    TessDataStore.hasAnyInstalled(context, lang.toTessCode())
+                when (lang) {
+                    OcrLanguage.BOTH -> TessDataStore.hasAnyInstalled(context, "eng") && TessDataStore.hasAnyInstalled(context, "ara")
+                    OcrLanguage.AUTO -> OcrLanguage.entries.any { it != OcrLanguage.BOTH && it != OcrLanguage.AUTO && TessDataStore.hasAnyInstalled(context, it.toTessCode()) }
+                    else -> TessDataStore.hasAnyInstalled(context, lang.toTessCode())
                 }
             }
 
@@ -768,6 +801,7 @@ private fun OcrLanguage.toDisplayString(): Int = when (this) {
     OcrLanguage.JAPANESE -> R.string.ocr_lang_japanese
     OcrLanguage.KOREAN -> R.string.ocr_lang_korean
     OcrLanguage.BOTH -> R.string.ocr_lang_both
+    OcrLanguage.AUTO -> R.string.ocr_lang_auto
 }
 
 private fun OcrLanguage.toTessCode(): String = when (this) {
@@ -779,6 +813,7 @@ private fun OcrLanguage.toTessCode(): String = when (this) {
     OcrLanguage.JAPANESE -> "jpn"
     OcrLanguage.KOREAN -> "kor"
     OcrLanguage.BOTH -> "ara+eng"
+    OcrLanguage.AUTO -> "auto"
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

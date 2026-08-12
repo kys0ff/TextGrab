@@ -1,5 +1,6 @@
 package off.kys.textgrab.tile
 
+import android.annotation.SuppressLint
 import android.app.PendingIntent
 import android.content.Intent
 import android.os.Build
@@ -8,15 +9,14 @@ import android.service.quicksettings.TileService
 import off.kys.textgrab.MainActivity
 import off.kys.textgrab.core.permission.PermissionManager
 import off.kys.textgrab.overlay.OverlayBus
+import org.koin.android.ext.android.inject
 
 /**
- * System-bar Quick Settings tile. Tapping it:
- *  - if the Accessibility service **and** overlay permission are both granted,
- *    launches the invisible [ScanTrampolineActivity] (which collapses the shade and
- *    kicks off a scan of the underlying app);
- *  - otherwise opens [MainActivity] so the user can finish setup.
+ * System-bar Quick Settings tile.
  */
 class TextGrabTileService : TileService() {
+
+    private val permissionManager: PermissionManager by inject()
 
     override fun onStartListening() {
         super.onStartListening()
@@ -29,8 +29,6 @@ class TextGrabTileService : TileService() {
     override fun onClick() {
         super.onClick()
 
-        // unlockAndRun defers the action until the device is unlocked (needed because
-        // we launch an activity / show an overlay).
         unlockAndRun {
             val target = if (isReady()) {
                 Intent(this, ScanTrampolineActivity::class.java)
@@ -44,12 +42,11 @@ class TextGrabTileService : TileService() {
     }
 
     private fun isReady(): Boolean =
-        PermissionManager.isAccessibilityEnabled(applicationContext) &&
-            PermissionManager.canDrawOverlays(applicationContext)
+        permissionManager.isAccessibilityEnabled() &&
+            permissionManager.canDrawOverlays()
 
     private fun launchCollapsing(intent: Intent) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-            // Android 14+: startActivityAndCollapse takes a PendingIntent.
             val pending = PendingIntent.getActivity(
                 this,
                 0,
@@ -58,6 +55,7 @@ class TextGrabTileService : TileService() {
             )
             startActivityAndCollapse(pending)
         } else {
+            @SuppressLint("StartActivityAndCollapseDeprecated")
             @Suppress("DEPRECATION")
             startActivityAndCollapse(intent)
         }

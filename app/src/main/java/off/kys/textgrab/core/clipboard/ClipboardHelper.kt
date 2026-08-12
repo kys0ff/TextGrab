@@ -5,31 +5,28 @@ import android.content.ClipboardManager
 import android.content.Context
 import android.os.Build
 import android.widget.Toast
-import off.kys.textgrab.ServiceLocator
 import off.kys.textgrab.core.model.ExtractionMode
+import off.kys.textgrab.data.HistoryRepository
 
 /**
  * Unified copy manager. Handles Unicode / Arabic / Latin identically (Android's
  * clipboard is UTF-16 throughout) and records every copy in the history log.
- *
- * On Android 13+ the platform shows its own "copied" confirmation, so we suppress
- * our Toast there to avoid a double confirmation.
  */
-object ClipboardHelper {
-
-    private const val LABEL = "TextGrab"
+class ClipboardHelper(
+    private val context: Context,
+    private val historyRepository: HistoryRepository
+) {
 
     /** Copy a single element and log it. */
     fun copy(
-        context: Context,
         text: String,
         source: ExtractionMode,
         toastMessage: String? = null,
     ) {
         if (text.isEmpty()) return
-        clipboard(context).setPrimaryClip(ClipData.newPlainText(LABEL, text))
-        ServiceLocator.history.add(text, source)
-        maybeToast(context, toastMessage)
+        clipboard().setPrimaryClip(ClipData.newPlainText(LABEL, text))
+        historyRepository.add(text, source)
+        maybeToast(toastMessage)
     }
 
     /**
@@ -37,7 +34,6 @@ object ClipboardHelper {
      * logged as one entry to keep the history readable.
      */
     fun copyAll(
-        context: Context,
         items: List<String>,
         source: ExtractionMode,
         toastMessage: String? = null,
@@ -45,17 +41,20 @@ object ClipboardHelper {
         val filtered = items.filter { it.isNotEmpty() }
         if (filtered.isEmpty()) return
         val joined = filtered.joinToString(separator = "\n")
-        clipboard(context).setPrimaryClip(ClipData.newPlainText(LABEL, joined))
-        ServiceLocator.history.add(joined, source)
-        maybeToast(context, toastMessage)
+        clipboard().setPrimaryClip(ClipData.newPlainText(LABEL, joined))
+        historyRepository.add(joined, source)
+        maybeToast(toastMessage)
     }
 
-    private fun clipboard(context: Context): ClipboardManager =
+    private fun clipboard(): ClipboardManager =
         context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
 
-    private fun maybeToast(context: Context, message: String?) {
-        // Android 13 (TIRAMISU) and above surface a system copy confirmation UI.
+    private fun maybeToast(message: String?) {
         if (message == null || Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) return
         Toast.makeText(context.applicationContext, message, Toast.LENGTH_SHORT).show()
+    }
+
+    companion object {
+        private const val LABEL = "TextGrab"
     }
 }

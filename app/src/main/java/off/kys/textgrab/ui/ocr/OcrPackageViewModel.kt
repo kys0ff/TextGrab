@@ -1,65 +1,91 @@
 package off.kys.textgrab.ui.ocr
 
-import android.app.Application
-import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.flow.MutableStateFlow
+import android.content.Context
+import cafe.adriel.voyager.core.model.ScreenModel
+import cafe.adriel.voyager.core.model.screenModelScope
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import off.kys.textgrab.ServiceLocator
+import off.kys.textgrab.ocr.OcrDownloadService
+import off.kys.textgrab.ocr.OcrEngine
+import off.kys.textgrab.ocr.OcrPackageRepository
 import off.kys.textgrab.ocr.TessDataStore
 import off.kys.textgrab.ocr.model.DownloadState
 import off.kys.textgrab.ocr.model.OcrPackage
 import off.kys.textgrab.ocr.model.TesseractVersion
 
-class OcrPackageViewModel(application: Application) : AndroidViewModel(application) {
+data class OcrPackageState(
+    val packages: List<OcrPackage> = emptyList()
+)
 
-    private val repository = ServiceLocator.ocrPackages
+sealed interface OcrPackageEvent {
+    data class Download(val pkg: OcrPackage, val version: TesseractVersion, val url: String) : OcrPackageEvent
+    data class Delete(val pkg: OcrPackage, val version: TesseractVersion) : OcrPackageEvent
+    data class SetDefault(val pkg: OcrPackage, val version: TesseractVersion) : OcrPackageEvent
+    data object Refresh : OcrPackageEvent
+}
 
-    private val _packages = MutableStateFlow<List<OcrPackage>>(repository.getAvailablePackages())
-    val packages: StateFlow<List<OcrPackage>> = _packages.asStateFlow()
+class OcrPackageViewModel(
+    private val context: Context,
+    private val repository: OcrPackageRepository,
+    private val ocrEngine: OcrEngine
+) : ScreenModel {
 
-    val downloadStates = repository.downloadStates
+    val state: StateFlow<OcrPackageState> = repository.packages
+        .map { OcrPackageState(it) }
+        .stateIn(
+            scope = screenModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = OcrPackageState()
+        )
 
     init {
         repository.refreshInstallationStates()
     }
 
-    fun download(pkg: OcrPackage, version: TesseractVersion, url: String) {
-        val key = "${pkg.tessCode}_$version"
-        viewModelScope.launch {
-            // Update state to downloading
-            updateDownloadState(key, DownloadState.Downloading(0f))
-
-            val success = TessDataStore.download(
-                getApplication(),
-                pkg.tessCode,
-                version,
-                url,
-                onProgress = { progress ->
-                    updateDownloadState(key, DownloadState.Downloading(progress))
-                }
-            )
-
-            if (success) {
-                updateDownloadState(key, DownloadState.Downloaded)
-                repository.refreshInstallationStates()
-            } else {
-                updateDownloadState(key, DownloadState.Error("Download failed"))
-            }
+    fun onEvent(event: OcrPackageEvent) {
+        when (event) {
+            is OcrPackageEvent.Download -> download(event.pkg, event.version, event.url)
+            is OcrPackageEvent.Delete -> delete(event.pkg, event.version)
+            is OcrPackageEvent.SetDefault -> setDefault(event.pkg, event.version)
+            OcrPackageEvent.Refresh -> refresh()
         }
     }
 
-    fun delete(pkg: OcrPackage, version: TesseractVersion) {
+    override fun onDispose() {
+        super.onDispose()
+        screenModelScope.launch {
+            ocrEngine.close()
+        }
+    }
+
+    private fun refresh() {
+        repository.refreshModelSizesInBackground()
+    }
+
+    private fun download(pkg: OcrPackage, version: TesseractVersion, url: String) {
+        OcrDownloadService.start(
+            context = context,
+            tessCode = pkg.tessCode,
+            version = version,
+            url = url,
+            displayName = pkg.displayName
+        )
+    }
+
+    private fun delete(pkg: OcrPackage, version: TesseractVersion) {
         val key = "${pkg.tessCode}_$version"
-        if (TessDataStore.delete(getApplication(), pkg.tessCode, version)) {
-            updateDownloadState(key, DownloadState.NotDownloaded)
+        if (TessDataStore.delete(context, pkg.tessCode, version)) {
+            repository.updateDownloadState(key, DownloadState.NotDownloaded)
             repository.refreshInstallationStates()
         }
     }
 
-    private fun updateDownloadState(key: String, state: DownloadState) {
-        repository.updateDownloadState(key, state)
+    private fun setDefault(pkg: OcrPackage, version: TesseractVersion) {
+        screenModelScope.launch {
+            repository.setDefaultVersion(pkg.tessCode, version)
+        }
     }
 }

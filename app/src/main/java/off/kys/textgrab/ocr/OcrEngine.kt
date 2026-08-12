@@ -10,7 +10,13 @@ import android.util.Log
 import androidx.core.graphics.createBitmap
 import androidx.core.graphics.scale
 import com.googlecode.tesseract.android.TessBaseAPI
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
@@ -18,25 +24,35 @@ import off.kys.textgrab.core.model.ExtractionMode
 import off.kys.textgrab.core.model.GrabbedText
 import off.kys.textgrab.core.model.OcrLanguage
 import off.kys.textgrab.core.model.isRtl
+import off.kys.textgrab.ocr.model.TesseractVersion
+import java.io.File
 import java.util.concurrent.atomic.AtomicLong
 
 /**
- * Tesseract-based OCR engine with fully offline Latin ("eng") and Arabic ("ara")
- * support. [OcrLanguage.BOTH] runs a single "ara+eng" pass so Tesseract picks the
- * best script per word.
- *
- * Owns the native Tesseract engine for its whole lifetime — call [close] when the
- * owner (e.g. a service) is torn down.
+ * Tesseract-based OCR engine.
  */
-class OcrEngine {
+class OcrEngine(private val repository: OcrPackageRepository) {
 
     private val nextId = AtomicLong(0)
     private val tessMutex = Mutex()
     private var tess: TessBaseAPI? = null
     private var tessLanguage: String? = null
 
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    private var defaultsJob: Job? = null
+    private val currentDefaults = MutableStateFlow<Map<String, TesseractVersion>>(emptyMap())
+
+    init {
+        defaultsJob = scope.launch {
+            repository.defaultVersions.collect {
+                currentDefaults.value = it
+            }
+        }
+    }
+
     fun isLoaded(language: OcrLanguage): Boolean {
-        return tessLanguage == language.toTessLanguage() && tess != null
+        // Simple check, might be more complex for AUTO
+        return tess != null && language != OcrLanguage.AUTO
     }
 
     suspend fun recognize(
@@ -45,25 +61,23 @@ class OcrEngine {
         language: OcrLanguage = OcrLanguage.BOTH
     ): List<GrabbedText> = withContext(Dispatchers.Default) {
         val safeBitmap = bitmap.toSoftwareBitmapIfNeeded()
-        val lines = runTesseract(safeBitmap, context, language)
+        val tessLang = resolveTessLanguage(language)
+        val lines = runTesseract(safeBitmap, context, tessLang)
         if (safeBitmap !== bitmap) safeBitmap.recycle()
 
         lines.sortedWith(compareBy({ it.top }, { it.left }))
     }
 
-    /**
-     * Pre-warms the Tesseract engine for the given language on a background thread.
-     * This ensures that data files are copied and the native engine is initialized
-     * before the first recognition request.
-     */
     suspend fun prepare(context: Context, language: OcrLanguage) = withContext(Dispatchers.Default) {
         tessMutex.withLock {
-            getOrInitTess(context, language.toTessLanguage())
+            val tessLang = resolveTessLanguage(language)
+            getOrInitTess(context, tessLang)
         }
     }
 
-    /** Releases native resources. Call when the owner of this engine is destroyed. */
     suspend fun close() {
+        defaultsJob?.cancel()
+        scope.cancel()
         tessMutex.withLock {
             tess?.recycle()
             tess = null
@@ -71,23 +85,33 @@ class OcrEngine {
         }
     }
 
-    /**
-     * Lazily creates and reuses the Tesseract engine across calls. Re-initializes
-     * only when the requested language string differs from the current one.
-     * Must be called while holding [tessMutex].
-     */
-    private suspend fun getOrInitTess(context: Context, tessLang: String): TessBaseAPI? = withContext(Dispatchers.IO) {
-        tess?.let { existing ->
-            if (tessLanguage == tessLang) return@withContext existing
-            existing.recycle()
-            tess = null
-            tessLanguage = null
+    private fun resolveTessLanguage(language: OcrLanguage): String = when (language) {
+        OcrLanguage.LATIN -> "eng"
+        OcrLanguage.ARABIC -> "ara"
+        OcrLanguage.FRENCH -> "fra"
+        OcrLanguage.GERMAN -> "deu"
+        OcrLanguage.CHINESE -> "chi_sim"
+        OcrLanguage.JAPANESE -> "jpn"
+        OcrLanguage.KOREAN -> "kor"
+        OcrLanguage.BOTH -> "ara+eng"
+        OcrLanguage.AUTO -> {
+            val installed = repository.getAvailablePackages().filter { pkg ->
+                TesseractVersion.entries.any { ver -> repository.isInstalled(pkg.tessCode, ver) }
+            }.map { it.tessCode }
+            if (installed.isEmpty()) "eng" else installed.joinToString("+")
         }
+    }
+
+    private suspend fun getOrInitTess(context: Context, tessLang: String): TessBaseAPI? = withContext(Dispatchers.IO) {
+        if (tess != null && tessLanguage == tessLang) return@withContext tess
+
+        tess?.recycle()
+        tess = null
+        tessLanguage = null
 
         val newTess = TessBaseAPI()
-        val dataPath = TessDataStore.getLegacyDataPath(context, tessLang)
+        val dataPath = prepareDataPath(context, tessLang)
 
-        // Use LSTM engine for better accuracy with modern .traineddata files.
         if (!newTess.init(dataPath, tessLang, TessBaseAPI.OEM_LSTM_ONLY)) {
             Log.e("OcrEngine", "Tesseract failed to initialize with '$tessLang' at $dataPath")
             newTess.recycle()
@@ -98,55 +122,54 @@ class OcrEngine {
         newTess
     }
 
+    private suspend fun prepareDataPath(context: Context, tessLang: String): String = withContext(Dispatchers.IO) {
+        val codes = tessLang.split('+')
+        val defaults = currentDefaults.value
+
+        if (codes.size == 1) {
+            val ver = defaults[codes[0]] ?: repository.getDefaultVersion(codes[0])
+            return@withContext TessDataStore.getTessDataPath(context, ver)
+        }
+
+        // For multiple languages, merge them into a single directory
+        val mergedDir = File(context.filesDir, "ocr_data/merged/tessdata")
+        if (!mergedDir.exists()) mergedDir.mkdirs()
+
+        for (code in codes) {
+            val ver = defaults[code] ?: repository.getDefaultVersion(code)
+            val source = File(TessDataStore.getTessDataPath(context, ver), "tessdata/$code.traineddata")
+            val dest = File(mergedDir, "$code.traineddata")
+            if (source.exists()) {
+                if (!dest.exists() || dest.lastModified() < source.lastModified()) {
+                    source.copyTo(dest, overwrite = true)
+                }
+            }
+        }
+        File(context.filesDir, "ocr_data/merged").absolutePath
+    }
+
     private suspend fun runTesseract(
         bitmap: Bitmap,
         context: Context,
-        language: OcrLanguage,
+        tessLang: String,
     ): List<GrabbedText> = tessMutex.withLock {
         var prepared: Bitmap? = null
         try {
-            val initStart = System.currentTimeMillis()
-            val api = getOrInitTess(context, language.toTessLanguage())
-                ?: return@withLock emptyList()
-            Log.d("OcrEngine", "DIAG init/reuse '${language.toTessLanguage()}' took ${System.currentTimeMillis() - initStart}ms")
-
+            val api = getOrInitTess(context, tessLang) ?: return@withLock emptyList()
             api.pageSegMode = TessBaseAPI.PageSegMode.PSM_AUTO
 
-            // Tesseract cannot cope with light-on-dark UI themes: grayscale the
-            // frame and invert it when the screen is predominantly dark.
-            val lum = bitmap.meanLuminance()
-            Log.d("OcrEngine", "DIAG src ${bitmap.width}x${bitmap.height} cfg=${bitmap.config} luminance=$lum inverted=${lum < DARK_SCREEN_LUMINANCE}")
             prepared = preprocess(bitmap)
-            // DIAG: dump the exact image Tesseract sees so it can be pulled via adb.
-            runCatching {
-                java.io.File(context.filesDir, "ocr_debug.png").outputStream().use {
-                    prepared.compress(Bitmap.CompressFormat.PNG, 100, it)
-                }
-            }
             api.setImage(prepared)
 
-            // setImage() alone does not run recognition: getUTF8Text() triggers the
-            // (blocking) Recognize() pass that the resultIterator reads from.
-            val recogStart = System.currentTimeMillis()
-            val fullText = api.utF8Text
-            Log.d("OcrEngine", "DIAG recognize took ${System.currentTimeMillis() - recogStart}ms, fullText.length=${fullText?.length}, meanConf=${api.meanConfidence()}")
-
+            val fullText = api.utF8Text ?: ""
             val results = mutableListOf<GrabbedText>()
-            val it = api.resultIterator
-            if (it == null) {
-                Log.e("OcrEngine", "Tesseract returned no result iterator")
-                return@withLock emptyList()
-            }
+            val it = api.resultIterator ?: return@withLock emptyList()
 
             it.begin()
             do {
                 val text = it.getUTF8Text(TessBaseAPI.PageIteratorLevel.RIL_TEXTLINE)?.trim()
                 if (!text.isNullOrEmpty()) {
                     val confidence = it.confidence(TessBaseAPI.PageIteratorLevel.RIL_TEXTLINE)
-                    Log.d("OcrEngine", "DIAG line conf=$confidence text='${text.take(40)}'")
-
-                    // Drop low-confidence lines: they are almost always noise
-                    // (icons, gradients, anti-aliased edges) misread as text.
                     if (confidence >= MIN_TESS_CONFIDENCE) {
                         val box = it.getBoundingRect(TessBaseAPI.PageIteratorLevel.RIL_TEXTLINE)
                         results += GrabbedText(
@@ -157,8 +180,6 @@ class OcrEngine {
                             right = box.right,
                             bottom = box.bottom,
                             source = ExtractionMode.OCR,
-                            // Only treat mostly-Arabic lines as RTL: a stray Arabic
-                            // character inside a Latin line must not flip the layout.
                             isRtl = text.isRtl() && text.arabicRatio() > 0.5f,
                         )
                     }
@@ -174,11 +195,6 @@ class OcrEngine {
         }
     }
 
-    /**
-     * Grayscale the frame and, if the screen is predominantly dark (night theme),
-     * invert it so Tesseract sees dark text on a light background — the only
-     * polarity its binarization handles reliably.
-     */
     private fun preprocess(src: Bitmap): Bitmap {
         val matrix = ColorMatrix().apply { setSaturation(0f) }
         if (src.meanLuminance() < DARK_SCREEN_LUMINANCE) {
@@ -199,7 +215,6 @@ class OcrEngine {
         return out
     }
 
-    /** Mean luminance (0-255) estimated from a 32x32 downsample of the frame. */
     private fun Bitmap.meanLuminance(): Float {
         val sample = this.scale(32, 32)
         val pixels = IntArray(32 * 32)
@@ -215,12 +230,6 @@ class OcrEngine {
         return sum.toFloat() / pixels.size
     }
 
-    /**
-     * Tesseract's setImage() and Bitmap.getPixels() both require a non-hardware
-     * config. Screen-capture sources (PixelCopy / MediaProjection) frequently hand
-     * back Config.HARDWARE, which throws IllegalStateException on either call site.
-     * Returns the original bitmap unchanged when no conversion is needed.
-     */
     private fun Bitmap.toSoftwareBitmapIfNeeded(): Bitmap =
         if (config == Bitmap.Config.HARDWARE) {
             this.copy(Bitmap.Config.ARGB_8888, false)
@@ -229,31 +238,11 @@ class OcrEngine {
         }
 
     private companion object {
-        /** Tesseract line confidence (0-100) below which a line is considered noise. */
         const val MIN_TESS_CONFIDENCE = 50f
-
-        /** Mean luminance below which the frame is treated as a dark theme and inverted. */
         const val DARK_SCREEN_LUMINANCE = 110f
     }
 }
 
-/** Maps the user-facing language selection to a Tesseract language string. */
-private fun OcrLanguage.toTessLanguage(): String = when (this) {
-    OcrLanguage.LATIN -> "eng"
-    OcrLanguage.ARABIC -> "ara"
-    OcrLanguage.FRENCH -> "fra"
-    OcrLanguage.GERMAN -> "deu"
-    OcrLanguage.CHINESE -> "chi_sim"
-    OcrLanguage.JAPANESE -> "jpn"
-    OcrLanguage.KOREAN -> "kor"
-    OcrLanguage.BOTH -> "ara+eng"
-}
-
-/**
- * Fraction of letters that belong to the Arabic script. Used to decide whether a
- * recognized line should be laid out right-to-left. Non-letters (digits,
- * punctuation) are ignored.
- */
 private fun String.arabicRatio(): Float {
     var letters = 0
     var arabic = 0

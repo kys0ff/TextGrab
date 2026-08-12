@@ -1,51 +1,76 @@
 package off.kys.textgrab.ui.main
 
+import android.Manifest
 import android.content.Context
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
-import off.kys.textgrab.ServiceLocator
+import android.content.pm.PackageManager
+import android.os.Build
+import androidx.core.content.ContextCompat
+import cafe.adriel.voyager.core.model.ScreenModel
+import cafe.adriel.voyager.core.model.screenModelScope
 import off.kys.textgrab.core.model.HistoryEntry
 import off.kys.textgrab.core.permission.PermissionManager
+import off.kys.textgrab.data.HistoryRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 
-/** Snapshot of the three setup permissions, re-read every time the screen resumes. */
 data class PermissionUiState(
     val accessibility: Boolean = false,
     val overlay: Boolean = false,
     val notifications: Boolean = false,
 )
 
-class MainViewModel : ViewModel() {
+data class MainState(
+    val history: List<HistoryEntry> = emptyList(),
+    val permissions: PermissionUiState = PermissionUiState()
+)
 
-    val history: StateFlow<List<HistoryEntry>> =
-        ServiceLocator.history.history.stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5_000),
-            initialValue = emptyList(),
-        )
+sealed interface MainEvent {
+    data object RefreshPermissions : MainEvent
+    data object ClearHistory : MainEvent
+}
+
+class MainViewModel(
+    private val context: Context,
+    private val historyRepository: HistoryRepository,
+    private val permissionManager: PermissionManager
+) : ScreenModel {
 
     private val _permissions = MutableStateFlow(PermissionUiState())
-    val permissions: StateFlow<PermissionUiState> = _permissions.asStateFlow()
+    
+    val state: StateFlow<MainState> = combine(
+        historyRepository.history,
+        _permissions
+    ) { history, permissions ->
+        MainState(history, permissions)
+    }.stateIn(
+        scope = screenModelScope,
+        started = SharingStarted.WhileSubscribed(5_000),
+        initialValue = MainState()
+    )
 
-    fun refreshPermissions(context: Context) {
-        val notificationsGranted = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
-            androidx.core.content.ContextCompat.checkSelfPermission(
-                context, android.Manifest.permission.POST_NOTIFICATIONS
-            ) == android.content.pm.PackageManager.PERMISSION_GRANTED
+    fun onEvent(event: MainEvent) {
+        when (event) {
+            MainEvent.RefreshPermissions -> refreshPermissions()
+            MainEvent.ClearHistory -> historyRepository.clear()
+        }
+    }
+
+    private fun refreshPermissions() {
+        val notificationsGranted = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            ContextCompat.checkSelfPermission(
+                context, Manifest.permission.POST_NOTIFICATIONS
+            ) == PackageManager.PERMISSION_GRANTED
         } else {
             true
         }
 
         _permissions.value = PermissionUiState(
-            accessibility = PermissionManager.isAccessibilityEnabled(context),
-            overlay = PermissionManager.canDrawOverlays(context),
+            accessibility = permissionManager.isAccessibilityEnabled(),
+            overlay = permissionManager.canDrawOverlays(),
             notifications = notificationsGranted,
         )
     }
-
-    fun clearHistory() = ServiceLocator.history.clear()
 }

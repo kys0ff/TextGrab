@@ -1,10 +1,18 @@
 package off.kys.textgrab
 
 import android.app.Application
+import off.kys.textgrab.di.appModule
+import org.koin.android.ext.koin.androidContext
+import org.koin.android.ext.koin.androidLogger
+import org.koin.core.context.startKoin
 
 class TextGrabApp : Application() {
     override fun onCreate() {
         super.onCreate()
-        ServiceLocator.init(this)
+        startKoin {
+            androidLogger()
+            androidContext(this@TextGrabApp)
+            modules(appModule)
+        }
     }
 }

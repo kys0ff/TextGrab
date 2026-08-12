@@ -52,8 +52,7 @@ class OverlayController(
             WindowManager.LayoutParams.MATCH_PARENT to WindowManager.LayoutParams.MATCH_PARENT
         }
 
-        val flags = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
-            WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
+        val flags = WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
             WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS or
             WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED
 
@@ -61,7 +60,7 @@ class OverlayController(
             w,
             h,
             type,
-            if (isScrollMode) flags or WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL else flags,
+            if (isScrollMode) flags or WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL else flags,
             PixelFormat.TRANSLUCENT,
         ).apply {
             gravity = if (isScrollMode) Gravity.BOTTOM or Gravity.END else Gravity.TOP or Gravity.START

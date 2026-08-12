@@ -23,7 +23,9 @@ data class OcrVersion(
     val version: TesseractVersion,
     val url: String,
     val sizeBytes: Long,
-    val isRecommended: Boolean = false
+    val isRecommended: Boolean = false,
+    val downloadState: DownloadState = DownloadState.NotDownloaded,
+    val isDefault: Boolean = false
 )
 
 sealed interface DownloadState {

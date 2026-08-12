@@ -18,6 +18,7 @@
     <string name="notif_channel_capture">Screen capture</string>
     <string name="ocr_lang_arabic">Arabic</string>
     <string name="ocr_lang_both">Both (Ara+Eng)</string>
+    <string name="ocr_lang_auto">Auto (All installed)</string>
     <string name="ocr_lang_latin">English / Latin</string>
     <string name="ocr_lang_french">French</string>
     <string name="ocr_lang_german">German</string>
@@ -71,8 +72,12 @@
     <string name="ocr_downloading">Downloading (%1$d%%)</string>
     <string name="ocr_installed">Installed</string>
     <string name="ocr_delete">Delete</string>
+    <string name="ocr_set_default">Set Default</string>
+    <string name="ocr_refresh">Refresh model sizes</string>
     <string name="ocr_missing_title">Missing Language Data</string>
     <string name="ocr_missing_desc">The data for %1$s is not yet downloaded. Would you like to download it now for offline OCR?</string>
+    <string name="ocr_auto_warning_title">Performance Warning</string>
+    <string name="ocr_auto_warning_desc">Using multiple OCR models simultaneously can significantly slow down recognition and increase memory usage on some devices. Continue anyway?</string>
     <string name="action_cancel">Cancel</string>
     <string name="action_download">Download</string>
 

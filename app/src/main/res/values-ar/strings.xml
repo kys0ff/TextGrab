@@ -18,6 +18,7 @@
     <string name="notif_channel_capture">التقاط الشاشة</string>
     <string name="ocr_lang_arabic">العربية</string>
     <string name="ocr_lang_both">كلاهما (عربي + إنجليزي)</string>
+    <string name="ocr_lang_auto">تلقائي (كل الحزم المثبتة)</string>
     <string name="ocr_lang_latin">الإنجليزية / اللاتينية</string>
     <string name="ocr_lang_french">الفرنسية</string>
     <string name="ocr_lang_german">الألمانية</string>
@@ -71,8 +72,12 @@
     <string name="ocr_downloading">جاري التنزيل (%1$d%%)</string>
     <string name="ocr_installed">مثبت</string>
     <string name="ocr_delete">حذف</string>
+    <string name="ocr_set_default">تعيين كافتراضي</string>
+    <string name="ocr_refresh">تحديث أحجام النماذج</string>
     <string name="ocr_missing_title">بيانات اللغة مفقودة</string>
     <string name="ocr_missing_desc">بيانات %1$s لم يتم تنزيلها بعد. هل ترغب في تنزيلها الآن للتعرف الضوئي على النصوص بدون إنترنت؟</string>
+    <string name="ocr_auto_warning_title">تحذير الأداء</string>
+    <string name="ocr_auto_warning_desc">استخدام نماذج OCR متعددة في نفس الوقت قد يؤدي إلى إبطاء التعرف وزيادة استهلاك الذاكرة بشكل كبير على بعض الأجهزة. هل تريد المتابعة على أي حال؟</string>
     <string name="action_cancel">إلغاء</string>
     <string name="action_download">تنزيل</string>
 
