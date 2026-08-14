@@ -50,16 +50,6 @@ class TextGrabAccessibilityService : AccessibilityService() {
                     getString(R.string.common_toast_multi_copied, items.size),
                 )
             },
-            onSwitchMode = { mode ->
-                OverlayBus.send(OverlayCommand.SwitchMode(mode))
-            },
-            onSwitchLanguage = { lang ->
-                OverlayBus.ocrLanguage.value = lang
-                OverlayBus.send(OverlayCommand.Rescan)
-            },
-            onRescan = {
-                OverlayBus.send(OverlayCommand.Rescan)
-            },
             onClose = {
                 OverlayBus.send(OverlayCommand.Hide)
             },

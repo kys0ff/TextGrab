@@ -1,7 +1,5 @@
 package off.kys.textgrab.ocr
 
-import android.app.Activity
-import android.content.Context
 import android.content.Intent
 import android.media.projection.MediaProjectionManager
 import android.os.Bundle
@@ -23,7 +21,7 @@ class MediaProjectionRequestActivity : ComponentActivity() {
     private val launcher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult(),
     ) { result ->
-        if (result.resultCode == Activity.RESULT_OK && result.data != null) {
+        if (result.resultCode == RESULT_OK && result.data != null) {
             val serviceIntent = Intent(this, ScreenCaptureService::class.java)
                 .putExtra(ScreenCaptureService.EXTRA_RESULT_CODE, result.resultCode)
                 .putExtra(ScreenCaptureService.EXTRA_RESULT_DATA, result.data)
@@ -37,7 +35,7 @@ class MediaProjectionRequestActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val manager = getSystemService(Context.MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
+        val manager = getSystemService(MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
         runCatching { launcher.launch(manager.createScreenCaptureIntent()) }
             .onFailure { finishAndClose() }
     }

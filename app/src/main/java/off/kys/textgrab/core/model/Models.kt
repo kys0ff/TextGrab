@@ -1,6 +1,9 @@
 package off.kys.textgrab.core.model
 
+import android.content.Context
 import androidx.compose.runtime.Immutable
+import off.kys.textgrab.ocr.TessDataStore
+import off.kys.textgrab.overlay.ui.components.toTessCode
 
 /**
  * Which engine produced a piece of text.
@@ -15,7 +18,15 @@ enum class ExtractionMode { ACCESSIBILITY, OCR }
  * Supported OCR scripts.
  */
 enum class OcrLanguage {
-    LATIN, ARABIC, FRENCH, GERMAN, CHINESE, JAPANESE, KOREAN, AUTO
+    LATIN, ARABIC, FRENCH, GERMAN, CHINESE, JAPANESE, KOREAN, AUTO;
+
+    companion object {
+        fun getSortedEntries(context: Context): List<OcrLanguage> = entries.sortedWith(
+            compareByDescending<OcrLanguage> { it.name.equals("auto", ignoreCase = true) }
+                .thenByDescending { TessDataStore.hasAnyInstalled(context, it.toTessCode()) }
+                .thenBy { it.name }
+        )
+    }
 }
 
 /**

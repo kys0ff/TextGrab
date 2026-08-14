@@ -4,154 +4,75 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.spring
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.animation.shrinkVertically
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentSize
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Accessibility
-import androidx.compose.material.icons.filled.Checklist
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.CloudDownload
-import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.DocumentScanner
-import androidx.compose.material.icons.filled.DoneAll
-import androidx.compose.material.icons.filled.ErrorOutline
-import androidx.compose.material.icons.filled.ExpandMore
-import androidx.compose.material.icons.filled.Image
-import androidx.compose.material.icons.filled.Language
-import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material.icons.filled.SearchOff
-import androidx.compose.material.icons.filled.SwapVert
-import androidx.compose.material3.Badge
-import androidx.compose.material3.BadgedBox
-import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilledIconButton
-import androidx.compose.material3.FilledTonalButton
-import androidx.compose.material3.FilledTonalIconButton
-import androidx.compose.material3.FilterChip
-import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButtonDefaults
-import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ProvideTextStyle
-import androidx.compose.material3.SegmentedButton
-import androidx.compose.material3.SegmentedButtonDefaults
-import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
-import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import off.kys.textgrab.R
 import off.kys.textgrab.core.model.ExtractionMode
-import off.kys.textgrab.core.model.GrabbedText
-import off.kys.textgrab.core.model.OcrLanguage
-import off.kys.textgrab.core.model.OverlayCommand
 import off.kys.textgrab.core.model.OverlayStatus
-import off.kys.textgrab.ocr.TessDataStore
-import off.kys.textgrab.overlay.OverlayBus
+import off.kys.textgrab.overlay.ui.components.InlineAlertDialog
+import off.kys.textgrab.overlay.ui.components.OverlayActionBar
+import off.kys.textgrab.overlay.ui.components.OverlayHeader
+import off.kys.textgrab.overlay.ui.components.StatusCenter
+import off.kys.textgrab.overlay.ui.components.TextBox
+import off.kys.textgrab.overlay.ui.components.toDisplayString
 import off.kys.textgrab.ui.theme.TextGrabTheme
 import kotlin.math.roundToInt
 
-/**
- * How much of a draggable panel (header / action bar) must always remain
- * visible on screen. This lets the user shove a panel toward an edge to get
- * it out of the way without ever losing it off-screen entirely.
- */
 private val MinVisibleEdge = 56.dp
 
-/**
- * Coerces [this] between [a] and [b] regardless of which one is smaller,
- * so we never crash if a panel happens to be bigger than its container.
- */
 private fun Float.coerceInSafe(a: Float, b: Float): Float {
     val lo = minOf(a, b)
     val hi = maxOf(a, b)
     return coerceIn(lo, hi)
 }
 
-/**
- * Computes a new drag offset along a single axis, keeping at least
- * [minVisible] px of the panel inside the [containerSize] px bounds.
- *
- * @param current current offset value on this axis
- * @param delta incoming drag delta on this axis
- * @param basePosition the panel's un-offset position on this axis (e.g. from alignment)
- * @param panelSize the panel's measured size on this axis
- * @param containerSize the container's size on this axis
- * @param minVisible minimum px of the panel that must stay on-screen
- */
 private fun dragClamp(
     current: Float,
     delta: Float,
@@ -169,44 +90,40 @@ private fun dragClamp(
 
 @Composable
 fun OverlayScreen(
+    viewModel: OverlayViewModel = viewModel(),
     onCopyAll: (List<String>, ExtractionMode) -> Unit,
-    onSwitchMode: (ExtractionMode) -> Unit,
-    onSwitchLanguage: (OcrLanguage) -> Unit,
-    onRescan: () -> Unit,
-    onClose: () -> Unit,
     onOpenDownload: () -> Unit,
+    onClose: () -> Unit,
 ) {
-    val context = LocalContext.current
-    val elements by OverlayBus.elements.collectAsState()
-    val mode by OverlayBus.mode.collectAsState()
-    val ocrLanguage by OverlayBus.ocrLanguage.collectAsState()
-    val status by OverlayBus.status.collectAsState()
-    val isScrollMode by OverlayBus.isScrollMode.collectAsState()
+    val state by viewModel.state.collectAsState()
 
-    var multiSelect by remember { mutableStateOf(false) }
-    val selected = remember { mutableStateListOf<Long>() }
+    LaunchedEffect(Unit) {
+        viewModel.effects.collect { effect ->
+            when (effect) {
+                is OverlayUiEffect.CopyText -> onCopyAll(effect.texts, effect.mode)
+                OverlayUiEffect.CloseOverlay -> onClose()
+                OverlayUiEffect.NavigateToDownloads -> onOpenDownload()
+            }
+        }
+    }
 
     // Window position state for dragging the header control box
     var headerOffsetX by remember { mutableFloatStateOf(0f) }
     var headerOffsetY by remember { mutableFloatStateOf(0f) }
     var headerSize by remember { mutableStateOf(IntSize.Zero) }
-    var isExpanded by remember { mutableStateOf(true) }
 
     // Window position state for dragging the bottom action bar
     var actionBarOffsetX by remember { mutableFloatStateOf(0f) }
     var actionBarOffsetY by remember { mutableFloatStateOf(0f) }
     var actionBarSize by remember { mutableStateOf(IntSize.Zero) }
 
-    var missingLanguageDialog by remember { mutableStateOf<OcrLanguage?>(null) }
-    var autoModeWarningDialog by remember { mutableStateOf(false) }
-
     BackHandler {
-        onClose()
+        viewModel.onEvent(OverlayUiEvent.Close)
     }
 
     TextGrabTheme {
         AnimatedContent(
-            targetState = isScrollMode,
+            targetState = state.isScrollMode,
             transitionSpec = {
                 (fadeIn() + scaleIn(initialScale = 0.95f)) togetherWith
                         (fadeOut() + scaleOut(targetScale = 0.95f))
@@ -223,7 +140,6 @@ fun OverlayScreen(
                 val minVisiblePx = with(density) { MinVisibleEdge.toPx() }
 
                 if (scrolling) {
-                    // Minimized "Resume" button for Scroll Mode
                     Surface(
                         modifier = Modifier
                             .padding(24.dp)
@@ -232,7 +148,7 @@ fun OverlayScreen(
                         color = MaterialTheme.colorScheme.primaryContainer,
                         tonalElevation = 6.dp,
                         shadowElevation = 12.dp,
-                        onClick = { OverlayBus.send(OverlayCommand.SetScrollMode(false)) }
+                        onClick = { viewModel.onEvent(OverlayUiEvent.SetScrollMode(false)) }
                     ) {
                         Row(
                             modifier = Modifier.padding(horizontal = 20.dp, vertical = 12.dp),
@@ -251,8 +167,6 @@ fun OverlayScreen(
                         }
                     }
                 } else {
-                    // Dim scrim with a soft vertical gradient so content near the
-                    // header/action bar reads clearly without a flat, harsh overlay
                     Box(
                         Modifier
                             .fillMaxSize()
@@ -268,28 +182,23 @@ fun OverlayScreen(
                     )
 
                     // Text Bounding Boxes
-                    if (status is OverlayStatus.Ready) elements.forEach { element ->
+                    if (state.status is OverlayStatus.Ready) state.elements.forEach { element ->
                         TextBox(
                             element = element,
-                            selected = selected.contains(element.id),
-                            multiSelect = multiSelect,
+                            selected = state.selectedIds.contains(element.id),
+                            multiSelect = state.multiSelect,
                             widthDp = with(density) { element.width.toDp() },
                             heightDp = with(density) { element.height.toDp() },
                         ) {
-                            if (!multiSelect) multiSelect = true
-                            if (selected.contains(element.id)) {
-                                selected.remove(element.id)
-                            } else {
-                                selected.add(element.id)
-                            }
+                            viewModel.onEvent(OverlayUiEvent.ToggleElementSelection(element.id))
                         }
                     }
 
                     // Draggable & Collapsible Header Control Container
                     OverlayHeader(
-                        mode = mode,
-                        ocrLanguage = ocrLanguage,
-                        isExpanded = isExpanded,
+                        mode = state.mode,
+                        ocrLanguage = state.ocrLanguage,
+                        isExpanded = state.isExpanded,
                         modifier = Modifier
                             .offset {
                                 IntOffset(
@@ -322,44 +231,34 @@ fun OverlayScreen(
                                     )
                                 }
                             },
-                        onToggleExpand = { isExpanded = !isExpanded },
-                        onSwitchMode = onSwitchMode,
-                        onSwitchLanguage = { lang ->
-                            if (lang == OcrLanguage.AUTO) {
-                                autoModeWarningDialog = true
-                                return@OverlayHeader
-                            }
-                            val isInstalled =
-                                TessDataStore.hasAnyInstalled(context, lang.toTessCode())
-                            if (isInstalled) {
-                                onSwitchLanguage(lang)
-                            } else {
-                                missingLanguageDialog = lang
-                            }
-                        },
-                        onRescan = onRescan,
-                        onClose = onClose,
-                        onOpenDownload = onOpenDownload,
+                        onToggleExpand = { viewModel.onEvent(OverlayUiEvent.ToggleHeaderExpansion) },
+                        onSwitchMode = { viewModel.onEvent(OverlayUiEvent.SwitchMode(it)) },
+                        onSwitchLanguage = { viewModel.onEvent(OverlayUiEvent.SwitchLanguage(it)) },
+                        onRescan = { viewModel.onEvent(OverlayUiEvent.Rescan) },
+                        onClose = { viewModel.onEvent(OverlayUiEvent.Close) },
+                        onOpenDownload = { viewModel.onEvent(OverlayUiEvent.OpenDownload) },
+                        onShowAutoModeWarning = { viewModel.showAutoModeWarningDialog() },
+                        onShowMissingLanguage = { viewModel.showMissingLanguageDialog(it) }
                     )
 
                     StatusCenter(
-                        status = status,
-                        mode = mode,
+                        status = state.status,
+                        mode = state.mode,
                         modifier = Modifier.align(Alignment.Center),
-                        onSwitchToOcr = { onSwitchMode(ExtractionMode.OCR) },
-                        onRescan = onRescan,
-                        onOpenDownload = onOpenDownload,
+                        onSwitchToOcr = { viewModel.onEvent(OverlayUiEvent.SwitchMode(ExtractionMode.OCR)) },
+                        onRescan = { viewModel.onEvent(OverlayUiEvent.Rescan) },
+                        onOpenDownload = { viewModel.onEvent(OverlayUiEvent.OpenDownload) },
                     )
 
                     AnimatedVisibility(
-                        visible = elements.isNotEmpty(),
+                        visible = state.elements.isNotEmpty(),
                         modifier = Modifier.align(Alignment.BottomCenter),
                         enter = fadeIn() + expandVertically(),
                         exit = fadeOut() + shrinkVertically(),
                     ) {
                         OverlayActionBar(
-                            multiSelect = multiSelect,
-                            selectedCount = selected.size,
+                            multiSelect = state.multiSelect,
+                            selectedCount = state.selectedIds.size,
                             modifier = Modifier
                                 .offset {
                                     IntOffset(
@@ -391,43 +290,33 @@ fun OverlayScreen(
                                         )
                                     }
                                 },
-                            onToggleSelect = {
-                                multiSelect = !multiSelect
-                                if (!multiSelect) selected.clear()
-                            },
-                            onCopySelected = {
-                                val texts =
-                                    elements.filter { selected.contains(it.id) }.map { it.text }
-                                onCopyAll(texts, mode)
-                            },
-                            onCopyAll = { onCopyAll(elements.map { it.text }, mode) },
+                            onToggleSelect = { viewModel.onEvent(OverlayUiEvent.ToggleMultiSelect) },
+                            onCopySelected = { viewModel.onEvent(OverlayUiEvent.CopySelected) },
+                            onCopyAll = { viewModel.onEvent(OverlayUiEvent.CopyAll) },
                         )
                     }
 
-                    if (autoModeWarningDialog) {
+                    if (state.autoModeWarningDialog) {
                         InlineAlertDialog(
-                            onDismissRequest = { autoModeWarningDialog = false },
+                            onDismissRequest = { viewModel.onEvent(OverlayUiEvent.DismissAutoModeWarningDialog) },
                             title = { Text(stringResource(R.string.ocr_package_label_auto_warning_title)) },
                             text = { Text(stringResource(R.string.ocr_package_label_auto_warning_desc)) },
                             confirmButton = {
-                                TextButton(onClick = {
-                                    autoModeWarningDialog = false
-                                    onSwitchLanguage(OcrLanguage.AUTO)
-                                }) {
+                                TextButton(onClick = { viewModel.onEvent(OverlayUiEvent.ConfirmAutoModeWarning) }) {
                                     Text(stringResource(R.string.common_action_button_grant))
                                 }
                             },
                             dismissButton = {
-                                TextButton(onClick = { autoModeWarningDialog = false }) {
+                                TextButton(onClick = { viewModel.onEvent(OverlayUiEvent.DismissAutoModeWarningDialog) }) {
                                     Text(stringResource(R.string.common_action_button_cancel))
                                 }
                             }
                         )
                     }
 
-                    missingLanguageDialog?.let { lang ->
+                    state.missingLanguageDialog?.let { lang ->
                         InlineAlertDialog(
-                            onDismissRequest = { missingLanguageDialog = null },
+                            onDismissRequest = { viewModel.onEvent(OverlayUiEvent.DismissMissingLanguageDialog) },
                             title = { Text(stringResource(R.string.ocr_package_label_missing_title)) },
                             text = {
                                 Text(
@@ -439,14 +328,14 @@ fun OverlayScreen(
                             },
                             confirmButton = {
                                 TextButton(onClick = {
-                                    missingLanguageDialog = null
-                                    onOpenDownload()
+                                    viewModel.onEvent(OverlayUiEvent.DismissMissingLanguageDialog)
+                                    viewModel.onEvent(OverlayUiEvent.OpenDownload)
                                 }) {
                                     Text(stringResource(R.string.common_action_button_download))
                                 }
                             },
                             dismissButton = {
-                                TextButton(onClick = { missingLanguageDialog = null }) {
+                                TextButton(onClick = { viewModel.onEvent(OverlayUiEvent.DismissMissingLanguageDialog) }) {
                                     Text(stringResource(R.string.common_action_button_cancel))
                                 }
                             }
@@ -458,754 +347,4 @@ fun OverlayScreen(
     }
 }
 
-@Composable
-private fun TextBox(
-    element: GrabbedText,
-    selected: Boolean,
-    multiSelect: Boolean,
-    widthDp: Dp,
-    heightDp: Dp,
-    onSelect: () -> Unit,
-) {
-    val scheme = MaterialTheme.colorScheme
 
-    val borderColor = if (selected) scheme.primary else scheme.primary.copy(alpha = 0.55f)
-    val fillColor = if (selected) {
-        scheme.primaryContainer.copy(alpha = 0.95f)
-    } else {
-        scheme.surfaceContainerHighest.copy(alpha = 0.90f)
-    }
-    val textColor = if (selected) scheme.onPrimaryContainer else scheme.onSurface
-
-    val borderWidth by animateDpAsState(
-        targetValue = if (selected) 2.dp else 1.dp,
-        label = "textBoxBorderWidth",
-    )
-
-    // A gentle pop when a box is (de)selected — its scale settles just above
-    // 1x with a bouncy spring rather than snapping instantly.
-    val selectionScale by animateFloatAsState(
-        targetValue = if (selected) 1.05f else 1f,
-        animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy),
-        label = "textBoxSelectionScale",
-    )
-
-    // A brief scale+fade entrance the first time each box appears on screen,
-    // so newly-detected text doesn't just snap into existence.
-    val appear = remember(element.id) { Animatable(0f) }
-    LaunchedEffect(element.id) {
-        appear.animateTo(
-            1f,
-            animationSpec = spring(
-                dampingRatio = Spring.DampingRatioMediumBouncy,
-                stiffness = Spring.StiffnessLow
-            )
-        )
-    }
-
-    Box(
-        Modifier
-            .offset { IntOffset(element.left, element.top) }
-            .size(width = widthDp.coerceAtLeast(28.dp), height = heightDp.coerceAtLeast(22.dp))
-            .graphicsLayer {
-                val scale = appear.value * selectionScale
-                scaleX = scale
-                scaleY = scale
-                alpha = appear.value
-            }
-            .shadow(
-                elevation = if (selected) 4.dp else 1.dp,
-                shape = RoundedCornerShape(8.dp),
-                clip = false,
-            )
-            .clip(RoundedCornerShape(8.dp))
-            .background(fillColor)
-            .border(borderWidth, borderColor, RoundedCornerShape(8.dp))
-            .pointerInput(element.id) {
-                // A simple touch now starts/extends the selection directly,
-                // no long press required.
-                detectTapGestures(onTap = { onSelect() })
-            }
-            .padding(horizontal = 6.dp, vertical = 2.dp),
-        contentAlignment = Alignment.CenterStart,
-    ) {
-        CompositionLocalProvider(
-            LocalLayoutDirection provides if (element.isRtl) LayoutDirection.Rtl else LayoutDirection.Ltr,
-        ) {
-            Text(
-                text = element.text,
-                maxLines = 4,
-                overflow = TextOverflow.Ellipsis,
-                style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Medium),
-                color = textColor,
-            )
-        }
-
-        // Small selection indicator dot, only shown while multi-selecting,
-        // mirrors the familiar Google Photos / Files selection affordance
-        if (multiSelect) {
-            Box(
-                modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .padding(3.dp)
-                    .size(14.dp)
-                    .clip(CircleShape)
-                    .background(if (selected) scheme.primary else scheme.surface.copy(alpha = 0.8f))
-                    .border(
-                        width = 1.dp,
-                        color = if (selected) scheme.primary else scheme.outline,
-                        shape = CircleShape,
-                    ),
-            )
-        }
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun OverlayHeader(
-    mode: ExtractionMode,
-    ocrLanguage: OcrLanguage,
-    isExpanded: Boolean,
-    modifier: Modifier = Modifier,
-    onToggleExpand: () -> Unit,
-    onSwitchMode: (ExtractionMode) -> Unit,
-    onSwitchLanguage: (OcrLanguage) -> Unit,
-    onRescan: () -> Unit,
-    onClose: () -> Unit,
-    onOpenDownload: () -> Unit,
-) {
-    val scheme = MaterialTheme.colorScheme
-
-    Surface(
-        modifier = modifier
-            .statusBarsPadding()
-            .padding(12.dp)
-            .widthIn(max = 420.dp)
-            .animateContentSize(spring(stiffness = 400f)),
-        shape = RoundedCornerShape(28.dp),
-        color = scheme.surfaceContainerHigh,
-        tonalElevation = 3.dp,
-        shadowElevation = 6.dp,
-        border = BorderStroke(
-            1.dp,
-            scheme.outlineVariant.copy(alpha = 0.6f)
-        ),
-    ) {
-        Column(Modifier.padding(horizontal = 14.dp, vertical = 10.dp)) {
-            // Drag Bar Handle Icon Visual Cue
-            Box(
-                Modifier
-                    .align(Alignment.CenterHorizontally)
-                    .padding(bottom = 8.dp)
-                    .size(width = 32.dp, height = 4.dp)
-                    .clip(CircleShape)
-                    .background(scheme.onSurfaceVariant.copy(alpha = 0.35f)),
-            )
-
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                // App icon in a tonal container, matching Google's "avatar chip" pattern
-                Box(
-                    modifier = Modifier
-                        .size(36.dp)
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(scheme.primaryContainer),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Icon(
-                        Icons.Filled.DocumentScanner,
-                        contentDescription = null,
-                        tint = scheme.onPrimaryContainer,
-                        modifier = Modifier.size(20.dp),
-                    )
-                }
-
-                Spacer(Modifier.width(10.dp))
-
-                Column(Modifier.weight(1f)) {
-                    Text(
-                        stringResource(R.string.common_app_label_name),
-                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
-                        color = scheme.onSurface,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                    AnimatedContent(
-                        targetState = mode,
-                        label = "modeSubtitle",
-                    ) { currentMode ->
-                        Text(
-                            text = stringResource(
-                                if (currentMode == ExtractionMode.ACCESSIBILITY) {
-                                    R.string.common_mode_label_accessibility
-                                } else {
-                                    R.string.common_mode_label_ocr
-                                },
-                            ),
-                            style = MaterialTheme.typography.labelSmall,
-                            color = scheme.onSurfaceVariant,
-                        )
-                    }
-                }
-
-                Spacer(Modifier.width(4.dp))
-
-                val chevronRotation by animateFloatAsState(
-                    targetValue = if (isExpanded) 180f else 0f,
-                    label = "chevronRotation",
-                )
-                FilledTonalIconButton(onClick = onToggleExpand, modifier = Modifier.size(36.dp)) {
-                    Icon(
-                        imageVector = Icons.Filled.ExpandMore,
-                        contentDescription = if (isExpanded) {
-                            stringResource(R.string.overlay_action_button_collapse)
-                        } else {
-                            stringResource(R.string.overlay_action_button_expand)
-                        },
-                        modifier = Modifier
-                            .size(18.dp)
-                            .graphicsLayer { rotationZ = chevronRotation },
-                    )
-                }
-                Spacer(Modifier.width(6.dp))
-                FilledTonalIconButton(
-                    onClick = { OverlayBus.send(OverlayCommand.SetScrollMode(true)) },
-                    modifier = Modifier.size(36.dp)
-                ) {
-                    Icon(
-                        Icons.Filled.SwapVert,
-                        contentDescription = stringResource(R.string.overlay_action_button_scroll),
-                        modifier = Modifier.size(18.dp),
-                    )
-                }
-                Spacer(Modifier.width(6.dp))
-                FilledTonalIconButton(onClick = onRescan, modifier = Modifier.size(36.dp)) {
-                    Icon(
-                        Icons.Filled.Refresh,
-                        contentDescription = stringResource(R.string.overlay_action_button_rescan),
-                        modifier = Modifier.size(18.dp),
-                    )
-                }
-                Spacer(Modifier.width(6.dp))
-                FilledIconButton(
-                    onClick = onClose,
-                    modifier = Modifier.size(36.dp),
-                    colors = IconButtonDefaults.filledIconButtonColors(
-                        containerColor = scheme.errorContainer,
-                        contentColor = scheme.onErrorContainer,
-                    ),
-                ) {
-                    Icon(
-                        Icons.Filled.Close,
-                        contentDescription = stringResource(R.string.overlay_action_button_close),
-                        modifier = Modifier.size(18.dp),
-                    )
-                }
-            }
-
-            AnimatedVisibility(visible = isExpanded, enter = fadeIn(), exit = fadeOut()) {
-                Column {
-                    Spacer(Modifier.height(12.dp))
-
-                    SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
-                        SegmentedButton(
-                            selected = mode == ExtractionMode.ACCESSIBILITY,
-                            onClick = { onSwitchMode(ExtractionMode.ACCESSIBILITY) },
-                            shape = SegmentedButtonDefaults.itemShape(index = 0, count = 2),
-                            icon = {
-                                Icon(
-                                    Icons.Filled.Accessibility,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(18.dp),
-                                )
-                            },
-                            label = { Text(stringResource(R.string.common_mode_label_accessibility)) },
-                        )
-                        SegmentedButton(
-                            selected = mode == ExtractionMode.OCR,
-                            onClick = { onSwitchMode(ExtractionMode.OCR) },
-                            shape = SegmentedButtonDefaults.itemShape(index = 1, count = 2),
-                            icon = {
-                                Icon(
-                                    Icons.Filled.Image,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(18.dp),
-                                )
-                            },
-                            label = { Text(stringResource(R.string.common_mode_label_ocr)) },
-                        )
-                    }
-
-                    AnimatedVisibility(visible = mode == ExtractionMode.OCR) {
-                        Column {
-                            Spacer(Modifier.height(8.dp))
-                            LanguageSelector(
-                                selected = ocrLanguage,
-                                onSelect = onSwitchLanguage,
-                                onOpenDownload = onOpenDownload
-                            )
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun LanguageSelector(
-    selected: OcrLanguage,
-    onSelect: (OcrLanguage) -> Unit,
-    onOpenDownload: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    val context = LocalContext.current
-    LazyRow(
-        modifier = modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        contentPadding = PaddingValues(vertical = 4.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        items(OcrLanguage.entries) { lang ->
-            val isInstalled = remember(lang) {
-                when (lang) {
-                    OcrLanguage.AUTO -> OcrLanguage.entries.any {
-                        it != OcrLanguage.AUTO && TessDataStore.hasAnyInstalled(
-                            context,
-                            it.toTessCode()
-                        )
-                    }
-
-                    else -> TessDataStore.hasAnyInstalled(context, lang.toTessCode())
-                }
-            }
-
-            FilterChip(
-                selected = selected == lang,
-                onClick = { onSelect(lang) },
-                label = {
-                    Text(
-                        stringResource(lang.toDisplayString()),
-                        style = MaterialTheme.typography.labelSmall
-                    )
-                },
-                leadingIcon = if (!isInstalled) {
-                    {
-                        Icon(
-                            Icons.Default.ErrorOutline,
-                            contentDescription = null,
-                            modifier = Modifier.size(16.dp)
-                        )
-                    }
-                } else null,
-                colors = FilterChipDefaults.filterChipColors(
-                    selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                    selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                    selectedLeadingIconColor = MaterialTheme.colorScheme.error,
-                    iconColor = MaterialTheme.colorScheme.error
-                )
-            )
-        }
-
-        item {
-            FilledTonalIconButton(
-                onClick = onOpenDownload,
-                modifier = Modifier.size(32.dp)
-            ) {
-                Icon(
-                    Icons.Default.Language,
-                    contentDescription = stringResource(R.string.ocr_package_label_title),
-                    modifier = Modifier.size(16.dp)
-                )
-            }
-        }
-    }
-}
-
-private fun OcrLanguage.toDisplayString(): Int = when (this) {
-    OcrLanguage.LATIN -> R.string.ocr_lang_label_latin
-    OcrLanguage.ARABIC -> R.string.ocr_lang_label_arabic
-    OcrLanguage.FRENCH -> R.string.ocr_lang_label_french
-    OcrLanguage.GERMAN -> R.string.ocr_lang_label_german
-    OcrLanguage.CHINESE -> R.string.ocr_lang_label_chinese
-    OcrLanguage.JAPANESE -> R.string.ocr_lang_label_japanese
-    OcrLanguage.KOREAN -> R.string.ocr_lang_label_korean
-    OcrLanguage.AUTO -> R.string.ocr_lang_label_auto
-}
-
-private fun OcrLanguage.toTessCode(): String = when (this) {
-    OcrLanguage.LATIN -> "eng"
-    OcrLanguage.ARABIC -> "ara"
-    OcrLanguage.FRENCH -> "fra"
-    OcrLanguage.GERMAN -> "deu"
-    OcrLanguage.CHINESE -> "chi_sim"
-    OcrLanguage.JAPANESE -> "jpn"
-    OcrLanguage.KOREAN -> "kor"
-    OcrLanguage.AUTO -> "auto"
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun OverlayActionBar(
-    multiSelect: Boolean,
-    selectedCount: Int,
-    modifier: Modifier = Modifier,
-    onToggleSelect: () -> Unit,
-    onCopySelected: () -> Unit,
-    onCopyAll: () -> Unit,
-) {
-    val scheme = MaterialTheme.colorScheme
-
-    Surface(
-        modifier = modifier
-            .navigationBarsPadding()
-            .padding(horizontal = 12.dp, vertical = 10.dp)
-            .fillMaxWidth(),
-        shape = RoundedCornerShape(26.dp),
-        color = scheme.surfaceContainerHigh,
-        tonalElevation = 3.dp,
-        shadowElevation = 8.dp,
-        border = BorderStroke(
-            1.dp,
-            scheme.outlineVariant.copy(alpha = 0.6f)
-        ),
-    ) {
-        Row(
-            Modifier.padding(horizontal = 10.dp, vertical = 8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(10.dp),
-        ) {
-            BadgedBox(
-                badge = {
-                    if (multiSelect && selectedCount > 0) {
-                        Badge(
-                            containerColor = scheme.primary,
-                            contentColor = scheme.onPrimary,
-                        ) {
-                            // An odometer-style digit transition rather than an
-                            // instant swap whenever the selection count changes.
-                            AnimatedContent(
-                                targetState = selectedCount,
-                                transitionSpec = {
-                                    if (targetState > initialState) {
-                                        (slideInVertically { it } + fadeIn()) togetherWith
-                                                (slideOutVertically { -it } + fadeOut())
-                                    } else {
-                                        (slideInVertically { -it } + fadeIn()) togetherWith
-                                                (slideOutVertically { it } + fadeOut())
-                                    }
-                                },
-                                label = "selectedCountBadge",
-                            ) { count -> Text("$count") }
-                        }
-                    }
-                },
-            ) {
-                FilterChip(
-                    selected = multiSelect,
-                    onClick = onToggleSelect,
-                    label = { Text(stringResource(R.string.overlay_action_button_select)) },
-                    leadingIcon = {
-                        Icon(
-                            Icons.Filled.Checklist,
-                            contentDescription = null,
-                            modifier = Modifier.size(18.dp),
-                        )
-                    },
-                    colors = FilterChipDefaults.filterChipColors(
-                        selectedContainerColor = scheme.secondaryContainer,
-                        selectedLabelColor = scheme.onSecondaryContainer,
-                        selectedLeadingIconColor = scheme.onSecondaryContainer,
-                    ),
-                    border = FilterChipDefaults.filterChipBorder(
-                        enabled = true,
-                        selected = multiSelect,
-                        borderColor = scheme.outlineVariant,
-                        selectedBorderColor = Color.Transparent,
-                    ),
-                )
-            }
-
-            Spacer(Modifier.weight(1f))
-
-            AnimatedContent(
-                targetState = multiSelect,
-                transitionSpec = { fadeIn(spring()) togetherWith fadeOut(spring()) },
-                label = "copyButton",
-            ) { isMultiSelect ->
-                if (isMultiSelect) {
-                    Button(
-                        onClick = onCopySelected,
-                        enabled = selectedCount > 0,
-                        shape = RoundedCornerShape(18.dp),
-                    ) {
-                        Icon(
-                            Icons.Filled.ContentCopy,
-                            contentDescription = null,
-                            modifier = Modifier.size(18.dp)
-                        )
-                        Spacer(Modifier.width(8.dp))
-                        Text(stringResource(R.string.overlay_action_button_copy_selected, selectedCount))
-                    }
-                } else {
-                    Button(
-                        onClick = onCopyAll,
-                        shape = RoundedCornerShape(18.dp),
-                    ) {
-                        Icon(
-                            Icons.Filled.DoneAll,
-                            contentDescription = null,
-                            modifier = Modifier.size(18.dp)
-                        )
-                        Spacer(Modifier.width(8.dp))
-                        Text(stringResource(R.string.overlay_action_button_copy_all))
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun StatusCenter(
-    status: OverlayStatus,
-    mode: ExtractionMode,
-    modifier: Modifier = Modifier,
-    onSwitchToOcr: () -> Unit,
-    onRescan: () -> Unit,
-    onOpenDownload: () -> Unit,
-) {
-    when (status) {
-        OverlayStatus.LoadingModel -> InfoCard(modifier) {
-            CircularProgressIndicator(
-                Modifier.size(36.dp),
-                strokeWidth = 3.dp,
-                color = MaterialTheme.colorScheme.primary,
-            )
-            Spacer(Modifier.height(16.dp))
-            Text(
-                stringResource(R.string.overlay_label_loading_model),
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurface,
-            )
-        }
-
-        OverlayStatus.Scanning -> InfoCard(modifier) {
-            CircularProgressIndicator(
-                Modifier.size(36.dp),
-                strokeWidth = 3.dp,
-                color = MaterialTheme.colorScheme.primary,
-            )
-            Spacer(Modifier.height(16.dp))
-            Text(
-                stringResource(R.string.overlay_label_scanning),
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurface,
-            )
-        }
-
-        OverlayStatus.Empty -> InfoCard(modifier) {
-            IllustrationBadge(icon = Icons.Filled.SearchOff)
-            Spacer(Modifier.height(16.dp))
-            val message = if (mode == ExtractionMode.ACCESSIBILITY) {
-                stringResource(R.string.overlay_label_empty_accessibility)
-            } else {
-                stringResource(R.string.overlay_label_empty_ocr)
-            }
-            Text(
-                message,
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurface,
-                textAlign = TextAlign.Center,
-            )
-            Spacer(Modifier.height(16.dp))
-            if (mode == ExtractionMode.ACCESSIBILITY) {
-                FilledTonalButton(
-                    onClick = onSwitchToOcr,
-                    shape = RoundedCornerShape(18.dp),
-                ) {
-                    Icon(
-                        Icons.Filled.Image,
-                        contentDescription = null,
-                        modifier = Modifier.size(18.dp)
-                    )
-                    Spacer(Modifier.width(8.dp))
-                    Text(stringResource(R.string.common_mode_label_ocr))
-                }
-            } else {
-                FilledTonalButton(
-                    onClick = onRescan,
-                    shape = RoundedCornerShape(18.dp),
-                ) {
-                    Icon(
-                        Icons.Filled.Refresh,
-                        contentDescription = null,
-                        modifier = Modifier.size(18.dp)
-                    )
-                    Spacer(Modifier.width(8.dp))
-                    Text(stringResource(R.string.overlay_action_button_rescan))
-                }
-            }
-        }
-
-        is OverlayStatus.Error -> InfoCard(
-            modifier,
-            accentColor = MaterialTheme.colorScheme.error
-        ) {
-            IllustrationBadge(icon = Icons.Filled.ErrorOutline, error = true)
-            Spacer(Modifier.height(16.dp))
-            Text(
-                status.message,
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.error,
-                textAlign = TextAlign.Center,
-            )
-            if (mode == ExtractionMode.OCR) {
-                Spacer(Modifier.height(16.dp))
-                FilledTonalButton(
-                    onClick = onOpenDownload,
-                    shape = RoundedCornerShape(18.dp),
-                ) {
-                    Icon(
-                        Icons.Filled.CloudDownload,
-                        contentDescription = null,
-                        modifier = Modifier.size(18.dp)
-                    )
-                    Spacer(Modifier.width(8.dp))
-                    Text(stringResource(R.string.ocr_package_label_title))
-                }
-            }
-        }
-
-        OverlayStatus.Idle, is OverlayStatus.Ready -> Unit
-    }
-}
-
-@Composable
-private fun IllustrationBadge(
-    icon: ImageVector,
-    error: Boolean = false
-) {
-    val scheme = MaterialTheme.colorScheme
-    val container = if (error) scheme.errorContainer else scheme.secondaryContainer
-    val content = if (error) scheme.onErrorContainer else scheme.onSecondaryContainer
-    Box(
-        modifier = Modifier
-            .size(56.dp)
-            .clip(CircleShape)
-            .background(container),
-        contentAlignment = Alignment.Center,
-    ) {
-        Icon(icon, contentDescription = null, tint = content, modifier = Modifier.size(28.dp))
-    }
-}
-
-@Composable
-private fun InfoCard(
-    modifier: Modifier = Modifier,
-    accentColor: Color? = null,
-    content: @Composable () -> Unit,
-) {
-    AnimatedVisibility(
-        visible = true,
-        enter = fadeIn() + scaleIn(initialScale = 0.92f),
-        exit = fadeOut() + scaleOut(targetScale = 0.92f),
-        modifier = modifier,
-    ) {
-        Surface(
-            modifier = Modifier
-                .padding(24.dp)
-                .widthIn(max = 360.dp),
-            shape = RoundedCornerShape(28.dp),
-            color = MaterialTheme.colorScheme.surfaceContainerHigh,
-            tonalElevation = 4.dp,
-            shadowElevation = 10.dp,
-            border = BorderStroke(
-                1.dp,
-                accentColor?.copy(alpha = 0.5f) ?: MaterialTheme.colorScheme.outlineVariant.copy(
-                    alpha = 0.6f
-                ),
-            ),
-        ) {
-            Column(
-                Modifier
-                    .padding(28.dp)
-                    .fillMaxWidth(),
-                horizontalAlignment = Alignment.CenterHorizontally,
-            ) { content() }
-        }
-    }
-}
-
-@Composable
-private fun InlineAlertDialog(
-    onDismissRequest: () -> Unit,
-    confirmButton: @Composable () -> Unit,
-    modifier: Modifier = Modifier,
-    dismissButton: @Composable (() -> Unit)? = null,
-    title: @Composable (() -> Unit)? = null,
-    text: @Composable (() -> Unit)? = null,
-) {
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color.Black.copy(alpha = 0.5f))
-            .pointerInput(Unit) {
-                detectTapGestures { onDismissRequest() }
-            },
-        contentAlignment = Alignment.Center
-    ) {
-        Surface(
-            modifier = modifier
-                .padding(24.dp)
-                .widthIn(max = 320.dp)
-                .pointerInput(Unit) {
-                    detectTapGestures { /* consume */ }
-                },
-            shape = RoundedCornerShape(28.dp),
-            color = MaterialTheme.colorScheme.surfaceContainerHigh,
-            tonalElevation = 6.dp,
-            shadowElevation = 8.dp
-        ) {
-            Column(
-                modifier = Modifier.padding(24.dp)
-            ) {
-                if (title != null) {
-                    Box(Modifier.padding(bottom = 16.dp)) {
-                        CompositionLocalProvider(
-                            LocalContentColor provides MaterialTheme.colorScheme.onSurface
-                        ) {
-                            ProvideTextStyle(MaterialTheme.typography.headlineSmall) {
-                                title()
-                            }
-                        }
-                    }
-                }
-
-                if (text != null) {
-                    Box(Modifier.padding(bottom = 24.dp)) {
-                        CompositionLocalProvider(
-                            LocalContentColor provides MaterialTheme.colorScheme.onSurfaceVariant
-                        ) {
-                            ProvideTextStyle(MaterialTheme.typography.bodyMedium) {
-                                text()
-                            }
-                        }
-                    }
-                }
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.End,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    if (dismissButton != null) {
-                        dismissButton()
-                        Spacer(Modifier.width(8.dp))
-                    }
-                    confirmButton()
-                }
-            }
-        }
-    }
-}

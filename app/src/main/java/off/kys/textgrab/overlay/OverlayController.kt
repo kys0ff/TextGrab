@@ -37,9 +37,6 @@ import off.kys.textgrab.overlay.ui.OverlayScreen
 class OverlayController(
     private val context: Context,
     private val onCopyAll: (List<String>, ExtractionMode) -> Unit,
-    private val onSwitchMode: (ExtractionMode) -> Unit,
-    private val onSwitchLanguage: (OcrLanguage) -> Unit,
-    private val onRescan: () -> Unit,
     private val onClose: () -> Unit,
     private val onOpenDownload: () -> Unit,
 ) {
@@ -113,11 +110,8 @@ class OverlayController(
             setContent {
                 OverlayScreen(
                     onCopyAll = onCopyAll,
-                    onSwitchMode = onSwitchMode,
-                    onSwitchLanguage = onSwitchLanguage,
-                    onRescan = onRescan,
-                    onClose = onClose,
                     onOpenDownload = onOpenDownload,
+                    onClose = onClose,
                 )
             }
         }
