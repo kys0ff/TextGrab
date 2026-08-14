@@ -23,7 +23,6 @@ import androidx.savedstate.SavedStateRegistryController
 import androidx.savedstate.SavedStateRegistryOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 import off.kys.textgrab.core.model.ExtractionMode
-import off.kys.textgrab.core.model.OcrLanguage
 import off.kys.textgrab.overlay.ui.OverlayScreen
 
 /**
@@ -142,11 +141,11 @@ class OverlayController(
  */
 private class OverlayLifecycleOwner : SavedStateRegistryOwner, ViewModelStoreOwner, OnBackPressedDispatcherOwner {
 
-    private val lifecycleRegistry = LifecycleRegistry(this)
     private val savedStateController = SavedStateRegistryController.create(this)
     private var restored = false
 
-    override val lifecycle: Lifecycle get() = lifecycleRegistry
+    override val lifecycle: Lifecycle
+        field = LifecycleRegistry(this)
     override val viewModelStore: ViewModelStore = ViewModelStore()
     override val savedStateRegistry: SavedStateRegistry get() = savedStateController.savedStateRegistry
     override val onBackPressedDispatcher = OnBackPressedDispatcher()
@@ -156,16 +155,16 @@ private class OverlayLifecycleOwner : SavedStateRegistryOwner, ViewModelStoreOwn
             savedStateController.performRestore(null)
             restored = true
         }
-        lifecycleRegistry.currentState = Lifecycle.State.CREATED
+        lifecycle.currentState = Lifecycle.State.CREATED
     }
 
     fun moveToResumed() {
         moveToCreated()
-        lifecycleRegistry.currentState = Lifecycle.State.RESUMED
+        lifecycle.currentState = Lifecycle.State.RESUMED
     }
 
     fun moveToDestroyed() {
-        lifecycleRegistry.currentState = Lifecycle.State.DESTROYED
+        lifecycle.currentState = Lifecycle.State.DESTROYED
         viewModelStore.clear()
     }
 }
