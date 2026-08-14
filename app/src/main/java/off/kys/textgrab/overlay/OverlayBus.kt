@@ -31,7 +31,7 @@ object OverlayBus {
     val mode = MutableStateFlow(ExtractionMode.ACCESSIBILITY)
 
     /** The active OCR language. */
-    val ocrLanguage = MutableStateFlow(OcrLanguage.BOTH)
+    val ocrLanguage = MutableStateFlow(OcrLanguage.LATIN)
 
     /** Whether the user is currently scrolling the background app. */
     val isScrollMode = MutableStateFlow(false)

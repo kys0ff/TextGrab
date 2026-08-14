@@ -3,9 +3,9 @@ package off.kys.textgrab.core.permission
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
-import android.net.Uri
 import android.provider.Settings
 import android.text.TextUtils
+import androidx.core.net.toUri
 import off.kys.textgrab.accessibility.TextGrabAccessibilityService
 
 /**
@@ -43,8 +43,16 @@ class PermissionManager(private val context: Context) {
         context.startActivity(
             Intent(
                 Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
-                Uri.parse("package:${context.packageName}"),
+                "package:${context.packageName}".toUri(),
             ).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
+        )
+    }
+
+    fun openNotificationsSettings() {
+        context.startActivity(
+            Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS)
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                .putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName),
         )
     }
 }

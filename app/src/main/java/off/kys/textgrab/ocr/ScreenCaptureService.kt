@@ -109,11 +109,16 @@ class ScreenCaptureService : Service() {
         scope.launch {
             val language = OverlayBus.ocrLanguage.value
             
-            if (ocr.isLoaded(language)) {
-                OverlayBus.status.value = OverlayStatus.Scanning
-            } else {
-                OverlayBus.status.value = OverlayStatus.LoadingModel
+            if (!ocr.isLoaded(language)) {
+                OverlayBus.status.value = OverlayStatus.Error(getString(R.string.ocr_missing_model_generic))
+                OverlayBus.send(OverlayCommand.ShowResults)
+                bitmap.recycle()
+                releaseCapture()
+                stopEverything()
+                return@launch
             }
+
+            OverlayBus.status.value = OverlayStatus.Scanning
             OverlayBus.send(OverlayCommand.ShowResults)
 
             val results = runCatching { 

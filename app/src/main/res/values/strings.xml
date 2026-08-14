@@ -4,7 +4,7 @@
     <string name="accessibility_service_label">TextGrab: Text Extraction</string>
     <string name="action_grant">Grant</string>
     <string name="action_open_settings">Open settings</string>
-    <string name="app_name">TextGrab</string>
+    <string name="app_name" translatable="false">TextGrab</string>
     <string name="app_tagline">Grab any text on your screen</string>
     <string name="copied_multi_toast">Copied %1$d items</string>
     <string name="copied_toast">Copied to clipboard</string>
@@ -80,9 +80,11 @@
     <string name="ocr_auto_warning_desc">Using multiple OCR models simultaneously can significantly slow down recognition and increase memory usage on some devices. Continue anyway?</string>
     <string name="action_cancel">Cancel</string>
     <string name="action_download">Download</string>
+    <string name="ocr_missing_model_generic">OCR model not found. Please download it from settings.</string>
 
     <string name="readiness_ready_title">All set!</string>
     <string name="readiness_pending_title">Almost there</string>
     <string name="readiness_ready_desc">TextGrab is ready to use. Open any app and tap the tile to grab text.</string>
     <string name="readiness_pending_desc">Complete the setup steps below to start grabbing text from your screen.</string>
+    <string name="copied_to_clipboard">Copied to clipboard</string>
 </resources>

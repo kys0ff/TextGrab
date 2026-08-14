@@ -7,8 +7,8 @@ import androidx.activity.enableEdgeToEdge
 import cafe.adriel.voyager.navigator.Navigator
 import cafe.adriel.voyager.transitions.SlideTransition
 import off.kys.textgrab.ocr.OcrPackageRepository
-import off.kys.textgrab.ui.main.MainScreen
-import off.kys.textgrab.ui.ocr.OcrPackageScreen
+import off.kys.textgrab.ui.screens.main.MainScreen
+import off.kys.textgrab.ui.screens.ocr.OcrPackageScreen
 import off.kys.textgrab.ui.theme.TextGrabTheme
 import org.koin.android.ext.android.inject
 

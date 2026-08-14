@@ -1,0 +1,9 @@
+package off.kys.textgrab.ui.screens.main
+
+import off.kys.textgrab.core.model.HistoryEntry
+
+sealed interface MainEvent {
+    data object RefreshPermissions : MainEvent
+    data object ClearHistory : MainEvent
+    data class OnHistoryCopy(val entry: HistoryEntry) : MainEvent
+}

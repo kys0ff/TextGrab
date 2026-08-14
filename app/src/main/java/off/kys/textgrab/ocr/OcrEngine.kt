@@ -50,16 +50,27 @@ class OcrEngine(private val repository: OcrPackageRepository) {
         }
     }
 
-    fun isLoaded(language: OcrLanguage): Boolean {
-        // Simple check, might be more complex for AUTO
-        return tess != null && language != OcrLanguage.AUTO
+    suspend fun isLoaded(language: OcrLanguage): Boolean {
+        val tessLang = resolveTessLanguage(language)
+        val codes = tessLang.split('+')
+        val defaults = currentDefaults.value
+
+        return codes.all { code ->
+            val ver = defaults[code] ?: repository.getDefaultVersion(code)
+            repository.isInstalled(code, ver)
+        }
     }
 
     suspend fun recognize(
         bitmap: Bitmap,
         context: Context,
-        language: OcrLanguage = OcrLanguage.BOTH
+        language: OcrLanguage = OcrLanguage.LATIN
     ): List<GrabbedText> = withContext(Dispatchers.Default) {
+        if (!isLoaded(language)) {
+            Log.e("OcrEngine", "OCR language '$language' is not fully installed.")
+            return@withContext emptyList()
+        }
+
         val safeBitmap = bitmap.toSoftwareBitmapIfNeeded()
         val tessLang = resolveTessLanguage(language)
         val lines = runTesseract(safeBitmap, context, tessLang)
@@ -93,7 +104,6 @@ class OcrEngine(private val repository: OcrPackageRepository) {
         OcrLanguage.CHINESE -> "chi_sim"
         OcrLanguage.JAPANESE -> "jpn"
         OcrLanguage.KOREAN -> "kor"
-        OcrLanguage.BOTH -> "ara+eng"
         OcrLanguage.AUTO -> {
             val installed = repository.getAvailablePackages().filter { pkg ->
                 TesseractVersion.entries.any { ver -> repository.isInstalled(pkg.tessCode, ver) }
@@ -157,11 +167,21 @@ class OcrEngine(private val repository: OcrPackageRepository) {
         try {
             val api = getOrInitTess(context, tessLang) ?: return@withLock emptyList()
             api.pageSegMode = TessBaseAPI.PageSegMode.PSM_AUTO
+            api.setVariable("user_defined_dpi", "300")
 
             prepared = preprocess(bitmap)
             api.setImage(prepared)
 
-            val fullText = api.utF8Text ?: ""
+            // IMPORTANT: setImage() only loads the image; it does NOT run recognition.
+            // This library's Java API has no public recognize() method — recognition is
+            // triggered implicitly the first time a get*Text() call is made. resultIterator
+            // on its own returns an iterator over nothing if recognition never ran, so we
+            // force it here by calling getUTF8Text() once before iterating.
+            val fullText = api.utF8Text
+            if (fullText.isNullOrEmpty()) {
+                return@withLock emptyList()
+            }
+
             val results = mutableListOf<GrabbedText>()
             val it = api.resultIterator ?: return@withLock emptyList()
 
@@ -197,6 +217,21 @@ class OcrEngine(private val repository: OcrPackageRepository) {
 
     private fun preprocess(src: Bitmap): Bitmap {
         val matrix = ColorMatrix().apply { setSaturation(0f) }
+
+        // Increase contrast: scale color values and then shift them
+        val contrast = 1.4f
+        val translate = (-.5f * contrast + .5f) * 255f
+        matrix.postConcat(
+            ColorMatrix(
+                floatArrayOf(
+                    contrast, 0f, 0f, 0f, translate,
+                    0f, contrast, 0f, 0f, translate,
+                    0f, 0f, contrast, 0f, translate,
+                    0f, 0f, 0f, 1f, 0f
+                )
+            )
+        )
+
         if (src.meanLuminance() < DARK_SCREEN_LUMINANCE) {
             matrix.postConcat(
                 ColorMatrix(

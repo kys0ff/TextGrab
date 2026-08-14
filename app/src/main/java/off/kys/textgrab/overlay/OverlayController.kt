@@ -4,7 +4,13 @@ import android.content.Context
 import android.graphics.PixelFormat
 import android.os.Build
 import android.view.Gravity
+import android.view.KeyEvent
+import android.view.View
 import android.view.WindowManager
+import android.widget.FrameLayout
+import androidx.activity.OnBackPressedDispatcher
+import androidx.activity.OnBackPressedDispatcherOwner
+import androidx.activity.setViewTreeOnBackPressedDispatcherOwner
 import androidx.compose.ui.platform.ComposeView
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleRegistry
@@ -40,11 +46,11 @@ class OverlayController(
 
     private val windowManager = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
     private val lifecycleOwner = OverlayLifecycleOwner()
-    private var composeView: ComposeView? = null
+    private var overlayView: View? = null
     private var attached = false
 
     private fun buildLayoutParams(isScrollMode: Boolean): WindowManager.LayoutParams {
-        val type = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
+        val type = WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY
 
         val (w, h) = if (isScrollMode) {
             WindowManager.LayoutParams.WRAP_CONTENT to WindowManager.LayoutParams.WRAP_CONTENT
@@ -75,20 +81,20 @@ class OverlayController(
 
     fun show() {
         if (attached) return
-        val view = composeView ?: createView().also { composeView = it }
+        val view = overlayView ?: createView().also { overlayView = it }
         lifecycleOwner.moveToResumed()
         runCatching { windowManager.addView(view, buildLayoutParams(OverlayBus.isScrollMode.value)) }
             .onSuccess { attached = true }
     }
 
     fun updateScrollMode(enabled: Boolean) {
-        val view = composeView ?: return
+        val view = overlayView ?: return
         if (!attached) return
         runCatching { windowManager.updateViewLayout(view, buildLayoutParams(enabled)) }
     }
 
     fun hide() {
-        val view = composeView ?: return
+        val view = overlayView ?: return
         if (!attached) return
         runCatching { windowManager.removeViewImmediate(view) }
         attached = false
@@ -98,15 +104,12 @@ class OverlayController(
     fun destroy() {
         hide()
         lifecycleOwner.moveToDestroyed()
-        composeView = null
+        overlayView = null
     }
 
-    private fun createView(): ComposeView {
+    private fun createView(): View {
         lifecycleOwner.moveToCreated()
-        return ComposeView(context).apply {
-            setViewTreeLifecycleOwner(lifecycleOwner)
-            setViewTreeViewModelStoreOwner(lifecycleOwner)
-            setViewTreeSavedStateRegistryOwner(lifecycleOwner)
+        val composeView = ComposeView(context).apply {
             setContent {
                 OverlayScreen(
                     onCopyAll = onCopyAll,
@@ -118,6 +121,24 @@ class OverlayController(
                 )
             }
         }
+
+        return object : FrameLayout(context) {
+            override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+                if (event.keyCode == KeyEvent.KEYCODE_BACK && event.action == KeyEvent.ACTION_UP) {
+                    if (lifecycleOwner.onBackPressedDispatcher.hasEnabledCallbacks()) {
+                        lifecycleOwner.onBackPressedDispatcher.onBackPressed()
+                        return true
+                    }
+                }
+                return super.dispatchKeyEvent(event)
+            }
+        }.apply {
+            setViewTreeLifecycleOwner(lifecycleOwner)
+            setViewTreeViewModelStoreOwner(lifecycleOwner)
+            setViewTreeSavedStateRegistryOwner(lifecycleOwner)
+            setViewTreeOnBackPressedDispatcherOwner(lifecycleOwner)
+            addView(composeView)
+        }
     }
 }
 
@@ -125,7 +146,7 @@ class OverlayController(
  * A self-contained lifecycle / view-model / saved-state owner for a window that has
  * no Activity behind it.
  */
-private class OverlayLifecycleOwner : SavedStateRegistryOwner, ViewModelStoreOwner {
+private class OverlayLifecycleOwner : SavedStateRegistryOwner, ViewModelStoreOwner, OnBackPressedDispatcherOwner {
 
     private val lifecycleRegistry = LifecycleRegistry(this)
     private val savedStateController = SavedStateRegistryController.create(this)
@@ -134,6 +155,7 @@ private class OverlayLifecycleOwner : SavedStateRegistryOwner, ViewModelStoreOwn
     override val lifecycle: Lifecycle get() = lifecycleRegistry
     override val viewModelStore: ViewModelStore = ViewModelStore()
     override val savedStateRegistry: SavedStateRegistry get() = savedStateController.savedStateRegistry
+    override val onBackPressedDispatcher = OnBackPressedDispatcher()
 
     fun moveToCreated() {
         if (!restored) {

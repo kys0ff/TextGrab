@@ -8,8 +8,8 @@ import off.kys.textgrab.core.permission.PermissionManager
 import off.kys.textgrab.data.HistoryRepository
 import off.kys.textgrab.ocr.OcrEngine
 import off.kys.textgrab.ocr.OcrPackageRepository
-import off.kys.textgrab.ui.main.MainViewModel
-import off.kys.textgrab.ui.ocr.OcrPackageViewModel
+import off.kys.textgrab.ui.screens.main.MainViewModel
+import off.kys.textgrab.ui.screens.ocr.OcrPackageViewModel
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.module.dsl.factoryOf
 import org.koin.dsl.module

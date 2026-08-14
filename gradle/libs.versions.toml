@@ -20,8 +20,8 @@ tesseract = "4.9.0"
 coroutines = "1.11.0"
 
 # DI & Navigation
-koin = "4.0.0"
-voyager = "1.1.0-beta03"
+koin = "4.2.2"
+voyager = "2.2.21-1.10.3"
 
 [libraries]
 # Core Android

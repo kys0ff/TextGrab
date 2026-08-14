@@ -49,6 +49,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Accessibility
 import androidx.compose.material.icons.filled.Checklist
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.CloudDownload
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.DocumentScanner
 import androidx.compose.material.icons.filled.DoneAll
@@ -59,7 +60,6 @@ import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.SearchOff
 import androidx.compose.material.icons.filled.SwapVert
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Button
@@ -72,7 +72,9 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ProvideTextStyle
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
@@ -202,50 +204,6 @@ fun OverlayScreen(
         onClose()
     }
 
-    autoModeWarningDialog.let { show ->
-        if (show) {
-            AlertDialog(
-                onDismissRequest = { autoModeWarningDialog = false },
-                title = { Text(stringResource(R.string.ocr_auto_warning_title)) },
-                text = { Text(stringResource(R.string.ocr_auto_warning_desc)) },
-                confirmButton = {
-                    TextButton(onClick = {
-                        autoModeWarningDialog = false
-                        onSwitchLanguage(OcrLanguage.AUTO)
-                    }) {
-                        Text(stringResource(R.string.action_grant))
-                    }
-                },
-                dismissButton = {
-                    TextButton(onClick = { autoModeWarningDialog = false }) {
-                        Text(stringResource(R.string.action_cancel))
-                    }
-                }
-            )
-        }
-    }
-
-    missingLanguageDialog?.let { lang ->
-        AlertDialog(
-            onDismissRequest = { missingLanguageDialog = null },
-            title = { Text(stringResource(R.string.ocr_missing_title)) },
-            text = { Text(stringResource(R.string.ocr_missing_desc, stringResource(lang.toDisplayString()))) },
-            confirmButton = {
-                TextButton(onClick = {
-                    missingLanguageDialog = null
-                    onOpenDownload()
-                }) {
-                    Text(stringResource(R.string.action_download))
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { missingLanguageDialog = null }) {
-                    Text(stringResource(R.string.action_cancel))
-                }
-            }
-        )
-    }
-
     TextGrabTheme {
         AnimatedContent(
             targetState = isScrollMode,
@@ -310,22 +268,21 @@ fun OverlayScreen(
                     )
 
                     // Text Bounding Boxes
-                    elements.forEach { element ->
+                    if (status is OverlayStatus.Ready) elements.forEach { element ->
                         TextBox(
                             element = element,
                             selected = selected.contains(element.id),
                             multiSelect = multiSelect,
                             widthDp = with(density) { element.width.toDp() },
                             heightDp = with(density) { element.height.toDp() },
-                            onSelect = {
-                                if (!multiSelect) multiSelect = true
-                                if (selected.contains(element.id)) {
-                                    selected.remove(element.id)
-                                } else {
-                                    selected.add(element.id)
-                                }
-                            },
-                        )
+                        ) {
+                            if (!multiSelect) multiSelect = true
+                            if (selected.contains(element.id)) {
+                                selected.remove(element.id)
+                            } else {
+                                selected.add(element.id)
+                            }
+                        }
                     }
 
                     // Draggable & Collapsible Header Control Container
@@ -334,7 +291,12 @@ fun OverlayScreen(
                         ocrLanguage = ocrLanguage,
                         isExpanded = isExpanded,
                         modifier = Modifier
-                            .offset { IntOffset(headerOffsetX.roundToInt(), headerOffsetY.roundToInt()) }
+                            .offset {
+                                IntOffset(
+                                    headerOffsetX.roundToInt(),
+                                    headerOffsetY.roundToInt()
+                                )
+                            }
                             .align(Alignment.TopCenter)
                             .onSizeChanged { headerSize = it }
                             .pointerInput(Unit) {
@@ -367,11 +329,8 @@ fun OverlayScreen(
                                 autoModeWarningDialog = true
                                 return@OverlayHeader
                             }
-                            val isInstalled = if (lang == OcrLanguage.BOTH) {
-                                TessDataStore.hasAnyInstalled(context, "eng") && TessDataStore.hasAnyInstalled(context, "ara")
-                            } else {
+                            val isInstalled =
                                 TessDataStore.hasAnyInstalled(context, lang.toTessCode())
-                            }
                             if (isInstalled) {
                                 onSwitchLanguage(lang)
                             } else {
@@ -389,6 +348,7 @@ fun OverlayScreen(
                         modifier = Modifier.align(Alignment.Center),
                         onSwitchToOcr = { onSwitchMode(ExtractionMode.OCR) },
                         onRescan = onRescan,
+                        onOpenDownload = onOpenDownload,
                     )
 
                     AnimatedVisibility(
@@ -402,7 +362,10 @@ fun OverlayScreen(
                             selectedCount = selected.size,
                             modifier = Modifier
                                 .offset {
-                                    IntOffset(actionBarOffsetX.roundToInt(), actionBarOffsetY.roundToInt())
+                                    IntOffset(
+                                        actionBarOffsetX.roundToInt(),
+                                        actionBarOffsetY.roundToInt()
+                                    )
                                 }
                                 .onSizeChanged { actionBarSize = it }
                                 .pointerInput(Unit) {
@@ -433,10 +396,60 @@ fun OverlayScreen(
                                 if (!multiSelect) selected.clear()
                             },
                             onCopySelected = {
-                                val texts = elements.filter { selected.contains(it.id) }.map { it.text }
+                                val texts =
+                                    elements.filter { selected.contains(it.id) }.map { it.text }
                                 onCopyAll(texts, mode)
                             },
                             onCopyAll = { onCopyAll(elements.map { it.text }, mode) },
+                        )
+                    }
+
+                    if (autoModeWarningDialog) {
+                        InlineAlertDialog(
+                            onDismissRequest = { autoModeWarningDialog = false },
+                            title = { Text(stringResource(R.string.ocr_auto_warning_title)) },
+                            text = { Text(stringResource(R.string.ocr_auto_warning_desc)) },
+                            confirmButton = {
+                                TextButton(onClick = {
+                                    autoModeWarningDialog = false
+                                    onSwitchLanguage(OcrLanguage.AUTO)
+                                }) {
+                                    Text(stringResource(R.string.action_grant))
+                                }
+                            },
+                            dismissButton = {
+                                TextButton(onClick = { autoModeWarningDialog = false }) {
+                                    Text(stringResource(R.string.action_cancel))
+                                }
+                            }
+                        )
+                    }
+
+                    missingLanguageDialog?.let { lang ->
+                        InlineAlertDialog(
+                            onDismissRequest = { missingLanguageDialog = null },
+                            title = { Text(stringResource(R.string.ocr_missing_title)) },
+                            text = {
+                                Text(
+                                    stringResource(
+                                        R.string.ocr_missing_desc,
+                                        stringResource(lang.toDisplayString())
+                                    )
+                                )
+                            },
+                            confirmButton = {
+                                TextButton(onClick = {
+                                    missingLanguageDialog = null
+                                    onOpenDownload()
+                                }) {
+                                    Text(stringResource(R.string.action_download))
+                                }
+                            },
+                            dismissButton = {
+                                TextButton(onClick = { missingLanguageDialog = null }) {
+                                    Text(stringResource(R.string.action_cancel))
+                                }
+                            }
                         )
                     }
                 }
@@ -481,7 +494,13 @@ private fun TextBox(
     // so newly-detected text doesn't just snap into existence.
     val appear = remember(element.id) { Animatable(0f) }
     LaunchedEffect(element.id) {
-        appear.animateTo(1f, animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow))
+        appear.animateTo(
+            1f,
+            animationSpec = spring(
+                dampingRatio = Spring.DampingRatioMediumBouncy,
+                stiffness = Spring.StiffnessLow
+            )
+        )
     }
 
     Box(
@@ -750,8 +769,13 @@ private fun LanguageSelector(
         items(OcrLanguage.entries) { lang ->
             val isInstalled = remember(lang) {
                 when (lang) {
-                    OcrLanguage.BOTH -> TessDataStore.hasAnyInstalled(context, "eng") && TessDataStore.hasAnyInstalled(context, "ara")
-                    OcrLanguage.AUTO -> OcrLanguage.entries.any { it != OcrLanguage.BOTH && it != OcrLanguage.AUTO && TessDataStore.hasAnyInstalled(context, it.toTessCode()) }
+                    OcrLanguage.AUTO -> OcrLanguage.entries.any {
+                        it != OcrLanguage.AUTO && TessDataStore.hasAnyInstalled(
+                            context,
+                            it.toTessCode()
+                        )
+                    }
+
                     else -> TessDataStore.hasAnyInstalled(context, lang.toTessCode())
                 }
             }
@@ -766,7 +790,13 @@ private fun LanguageSelector(
                     )
                 },
                 leadingIcon = if (!isInstalled) {
-                    { Icon(Icons.Default.ErrorOutline, contentDescription = null, modifier = Modifier.size(16.dp)) }
+                    {
+                        Icon(
+                            Icons.Default.ErrorOutline,
+                            contentDescription = null,
+                            modifier = Modifier.size(16.dp)
+                        )
+                    }
                 } else null,
                 colors = FilterChipDefaults.filterChipColors(
                     selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
@@ -800,7 +830,6 @@ private fun OcrLanguage.toDisplayString(): Int = when (this) {
     OcrLanguage.CHINESE -> R.string.ocr_lang_chinese
     OcrLanguage.JAPANESE -> R.string.ocr_lang_japanese
     OcrLanguage.KOREAN -> R.string.ocr_lang_korean
-    OcrLanguage.BOTH -> R.string.ocr_lang_both
     OcrLanguage.AUTO -> R.string.ocr_lang_auto
 }
 
@@ -812,7 +841,6 @@ private fun OcrLanguage.toTessCode(): String = when (this) {
     OcrLanguage.CHINESE -> "chi_sim"
     OcrLanguage.JAPANESE -> "jpn"
     OcrLanguage.KOREAN -> "kor"
-    OcrLanguage.BOTH -> "ara+eng"
     OcrLanguage.AUTO -> "auto"
 }
 
@@ -945,6 +973,7 @@ private fun StatusCenter(
     modifier: Modifier = Modifier,
     onSwitchToOcr: () -> Unit,
     onRescan: () -> Unit,
+    onOpenDownload: () -> Unit,
 ) {
     when (status) {
         OverlayStatus.LoadingModel -> InfoCard(modifier) {
@@ -1019,7 +1048,10 @@ private fun StatusCenter(
             }
         }
 
-        is OverlayStatus.Error -> InfoCard(modifier, accentColor = MaterialTheme.colorScheme.error) {
+        is OverlayStatus.Error -> InfoCard(
+            modifier,
+            accentColor = MaterialTheme.colorScheme.error
+        ) {
             IllustrationBadge(icon = Icons.Filled.ErrorOutline, error = true)
             Spacer(Modifier.height(16.dp))
             Text(
@@ -1028,6 +1060,21 @@ private fun StatusCenter(
                 color = MaterialTheme.colorScheme.error,
                 textAlign = TextAlign.Center,
             )
+            if (mode == ExtractionMode.OCR) {
+                Spacer(Modifier.height(16.dp))
+                FilledTonalButton(
+                    onClick = onOpenDownload,
+                    shape = RoundedCornerShape(18.dp),
+                ) {
+                    Icon(
+                        Icons.Filled.CloudDownload,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    Text(stringResource(R.string.ocr_download_title))
+                }
+            }
         }
 
         OverlayStatus.Idle, is OverlayStatus.Ready -> Unit
@@ -1075,7 +1122,9 @@ private fun InfoCard(
             shadowElevation = 10.dp,
             border = BorderStroke(
                 1.dp,
-                accentColor?.copy(alpha = 0.5f) ?: MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f),
+                accentColor?.copy(alpha = 0.5f) ?: MaterialTheme.colorScheme.outlineVariant.copy(
+                    alpha = 0.6f
+                ),
             ),
         ) {
             Column(
@@ -1084,6 +1133,79 @@ private fun InfoCard(
                     .fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) { content() }
+        }
+    }
+}
+
+@Composable
+private fun InlineAlertDialog(
+    onDismissRequest: () -> Unit,
+    confirmButton: @Composable () -> Unit,
+    modifier: Modifier = Modifier,
+    dismissButton: @Composable (() -> Unit)? = null,
+    title: @Composable (() -> Unit)? = null,
+    text: @Composable (() -> Unit)? = null,
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.Black.copy(alpha = 0.5f))
+            .pointerInput(Unit) {
+                detectTapGestures { onDismissRequest() }
+            },
+        contentAlignment = Alignment.Center
+    ) {
+        Surface(
+            modifier = modifier
+                .padding(24.dp)
+                .widthIn(max = 320.dp)
+                .pointerInput(Unit) {
+                    detectTapGestures { /* consume */ }
+                },
+            shape = RoundedCornerShape(28.dp),
+            color = MaterialTheme.colorScheme.surfaceContainerHigh,
+            tonalElevation = 6.dp,
+            shadowElevation = 8.dp
+        ) {
+            Column(
+                modifier = Modifier.padding(24.dp)
+            ) {
+                if (title != null) {
+                    Box(Modifier.padding(bottom = 16.dp)) {
+                        CompositionLocalProvider(
+                            LocalContentColor provides MaterialTheme.colorScheme.onSurface
+                        ) {
+                            ProvideTextStyle(MaterialTheme.typography.headlineSmall) {
+                                title()
+                            }
+                        }
+                    }
+                }
+
+                if (text != null) {
+                    Box(Modifier.padding(bottom = 24.dp)) {
+                        CompositionLocalProvider(
+                            LocalContentColor provides MaterialTheme.colorScheme.onSurfaceVariant
+                        ) {
+                            ProvideTextStyle(MaterialTheme.typography.bodyMedium) {
+                                text()
+                            }
+                        }
+                    }
+                }
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    if (dismissButton != null) {
+                        dismissButton()
+                        Spacer(Modifier.width(8.dp))
+                    }
+                    confirmButton()
+                }
+            }
         }
     }
 }

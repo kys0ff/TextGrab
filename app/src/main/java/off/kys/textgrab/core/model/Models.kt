@@ -15,7 +15,7 @@ enum class ExtractionMode { ACCESSIBILITY, OCR }
  * Supported OCR scripts.
  */
 enum class OcrLanguage {
-    LATIN, ARABIC, FRENCH, GERMAN, CHINESE, JAPANESE, KOREAN, BOTH, AUTO
+    LATIN, ARABIC, FRENCH, GERMAN, CHINESE, JAPANESE, KOREAN, AUTO
 }
 
 /**

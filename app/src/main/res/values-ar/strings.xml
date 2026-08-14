@@ -4,7 +4,6 @@
     <string name="accessibility_service_label">استخراج النص من تكست غراب</string>
     <string name="action_grant">منح الإذن</string>
     <string name="action_open_settings">فتح الإعدادات</string>
-    <string name="app_name">تكست غراب</string>
     <string name="app_tagline">التقط أي نص على شاشتك</string>
     <string name="copied_multi_toast">تم نسخ %1$d عنصرًا</string>
     <string name="copied_toast">تم النسخ إلى الحافظة</string>
@@ -80,6 +79,7 @@
     <string name="ocr_auto_warning_desc">استخدام نماذج OCR متعددة في نفس الوقت قد يؤدي إلى إبطاء التعرف وزيادة استهلاك الذاكرة بشكل كبير على بعض الأجهزة. هل تريد المتابعة على أي حال؟</string>
     <string name="action_cancel">إلغاء</string>
     <string name="action_download">تنزيل</string>
+    <string name="ocr_missing_model_generic">نموذج OCR غير موجود. يرجى تنزيله من الإعدادات.</string>
 
     <string name="readiness_ready_title">جاهز تمامًا!</string>
     <string name="readiness_pending_title">أوشكت على الانتهاء</string>
