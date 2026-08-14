@@ -84,6 +84,7 @@ import off.kys.textgrab.core.model.OverlayCommand
 import off.kys.textgrab.core.permission.PermissionManager
 import off.kys.textgrab.overlay.OverlayBus
 import off.kys.textgrab.ui.screens.ocr.OcrPackageScreen
+import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -94,7 +95,7 @@ class MainScreen : Screen {
 
     @Composable
     override fun Content() {
-        val viewModel = koinScreenModel<MainViewModel>()
+        val viewModel = koinViewModel<MainViewModel>()
         val state by viewModel.state.collectAsState()
 
         val permissionManager = koinInject<PermissionManager>()

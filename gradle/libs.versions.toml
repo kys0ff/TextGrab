@@ -11,7 +11,7 @@ savedState = "1.5.0"
 datastore = "1.2.1"
 
 # Compose
-composeBom = "2026.06.01"
+composeBom = "2026.08.00"
 
 # Tesseract
 tesseract = "4.9.0"

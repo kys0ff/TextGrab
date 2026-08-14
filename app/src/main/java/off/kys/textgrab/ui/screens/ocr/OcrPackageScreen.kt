@@ -60,7 +60,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import cafe.adriel.voyager.core.screen.Screen
-import cafe.adriel.voyager.koin.koinScreenModel
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.Navigator
 import cafe.adriel.voyager.navigator.currentOrThrow
@@ -69,12 +68,13 @@ import off.kys.textgrab.ocr.model.DownloadState
 import off.kys.textgrab.ocr.model.OcrPackage
 import off.kys.textgrab.ocr.model.OcrVersion
 import off.kys.textgrab.ocr.model.TesseractVersion
+import org.koin.androidx.compose.koinViewModel
 
 class OcrPackageScreen : Screen {
 
     @Composable
     override fun Content() {
-        val viewModel = koinScreenModel<OcrPackageViewModel>()
+        val viewModel = koinViewModel<OcrPackageViewModel>()
         val state by viewModel.state.collectAsState()
         val navigator = LocalNavigator.currentOrThrow
 

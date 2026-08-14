@@ -26,7 +26,7 @@ class ClipboardHelper(
         val filtered = items.filter { it.isNotEmpty() }
         if (filtered.isEmpty()) return
         val joined = filtered.joinToString(separator = "\n")
-        context.copy(joined, toastMessage)
+        context.copy(joined, joined)
         historyRepository.add(joined, source)
     }
 }
