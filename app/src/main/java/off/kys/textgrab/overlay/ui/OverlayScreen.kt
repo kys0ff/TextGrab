@@ -27,6 +27,7 @@ import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DocumentScanner
+import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -302,7 +303,7 @@ fun OverlayScreen(
                             title = { Text(stringResource(R.string.ocr_package_label_auto_warning_title)) },
                             text = { Text(stringResource(R.string.ocr_package_label_auto_warning_desc)) },
                             confirmButton = {
-                                TextButton(onClick = { viewModel.onEvent(OverlayUiEvent.ConfirmAutoModeWarning) }) {
+                                Button(onClick = { viewModel.onEvent(OverlayUiEvent.ConfirmAutoModeWarning) }) {
                                     Text(stringResource(R.string.common_action_button_grant))
                                 }
                             },
