@@ -60,7 +60,7 @@ class ScreenCaptureService : Service() {
         if (resultCode == Activity.RESULT_OK && data != null) {
             beginCapture(resultCode, data)
         } else {
-            fail(getString(R.string.overlay_denied))
+            fail(getString(R.string.overlay_label_permission_denied))
         }
         return START_NOT_STICKY
     }
@@ -69,7 +69,7 @@ class ScreenCaptureService : Service() {
         val manager = getSystemService(MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
         val mp = manager.getMediaProjection(resultCode, data)
         if (mp == null) {
-            fail(getString(R.string.overlay_denied))
+            fail(getString(R.string.overlay_label_permission_denied))
             return
         }
         projection = mp
@@ -110,7 +110,7 @@ class ScreenCaptureService : Service() {
             val language = OverlayBus.ocrLanguage.value
             
             if (!ocr.isLoaded(language)) {
-                OverlayBus.status.value = OverlayStatus.Error(getString(R.string.ocr_missing_model_generic))
+                OverlayBus.status.value = OverlayStatus.Error(getString(R.string.ocr_package_label_missing_generic))
                 OverlayBus.send(OverlayCommand.ShowResults)
                 bitmap.recycle()
                 releaseCapture()
@@ -147,8 +147,8 @@ class ScreenCaptureService : Service() {
     private fun startAsForeground() {
         ensureChannel()
         val notification = NotificationCompat.Builder(this, CHANNEL_ID)
-            .setContentTitle(getString(R.string.notif_capture_title))
-            .setContentText(getString(R.string.notif_capture_text))
+            .setContentTitle(getString(R.string.notif_capture_label_title))
+            .setContentText(getString(R.string.notif_capture_label_text))
             .setSmallIcon(R.drawable.ic_tile_scan)
             .setOngoing(true)
             .setCategory(NotificationCompat.CATEGORY_SERVICE)
@@ -167,7 +167,7 @@ class ScreenCaptureService : Service() {
             mgr.createNotificationChannel(
                 NotificationChannel(
                     CHANNEL_ID,
-                    getString(R.string.notif_channel_capture),
+                    getString(R.string.notif_capture_channel_name),
                     NotificationManager.IMPORTANCE_LOW,
                 ),
             )

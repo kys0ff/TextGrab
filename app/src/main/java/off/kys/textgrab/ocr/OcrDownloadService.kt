@@ -90,7 +90,7 @@ class OcrDownloadService : Service() {
         val channelId = "ocr_downloads"
         val channel = NotificationChannel(
             channelId,
-            getString(R.string.notif_channel_download),
+            getString(R.string.notif_download_channel_name),
             NotificationManager.IMPORTANCE_LOW
         )
         getSystemService(NotificationManager::class.java).createNotificationChannel(channel)
@@ -99,8 +99,8 @@ class OcrDownloadService : Service() {
         val pendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_IMMUTABLE)
 
         return NotificationCompat.Builder(this, channelId)
-            .setContentTitle(getString(R.string.notif_download_title))
-            .setContentText(getString(R.string.notif_download_desc, title, progressText))
+            .setContentTitle(getString(R.string.notif_download_label_title))
+            .setContentText(getString(R.string.notif_download_label_desc, title, progressText))
             .setSmallIcon(R.drawable.ic_tile_scan)
             .setProgress(100, progress, false)
             .setContentIntent(pendingIntent)
@@ -115,11 +115,11 @@ class OcrDownloadService : Service() {
 
     private fun showCompletionNotification(title: String, success: Boolean) {
         val channelId = "ocr_downloads"
-        val message = if (success) getString(R.string.notif_download_success, title) 
-                      else getString(R.string.notif_download_failed, title)
+        val message = if (success) getString(R.string.notif_download_label_success, title) 
+                      else getString(R.string.notif_download_label_failed, title)
         
         val notification = NotificationCompat.Builder(this, channelId)
-            .setContentTitle(getString(R.string.app_name))
+            .setContentTitle(getString(R.string.common_app_label_name))
             .setContentText(message)
             .setSmallIcon(R.drawable.ic_tile_scan)
             .setAutoCancel(true)

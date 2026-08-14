@@ -29,7 +29,7 @@ class MediaProjectionRequestActivity : ComponentActivity() {
                 .putExtra(ScreenCaptureService.EXTRA_RESULT_DATA, result.data)
             ContextCompat.startForegroundService(this, serviceIntent)
         } else {
-            OverlayBus.status.value = OverlayStatus.Error(getString(R.string.overlay_denied))
+            OverlayBus.status.value = OverlayStatus.Error(getString(R.string.overlay_label_permission_denied))
             OverlayBus.send(OverlayCommand.ShowResults)
         }
         finishAndClose()

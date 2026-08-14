@@ -72,7 +72,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import cafe.adriel.voyager.core.screen.Screen
-import cafe.adriel.voyager.koin.koinScreenModel
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.Navigator
 import cafe.adriel.voyager.navigator.currentOrThrow
@@ -148,7 +147,7 @@ private fun MainScreenContent(
                 title = {
                     Column {
                         Text(
-                            text = stringResource(R.string.app_name),
+                            text = stringResource(R.string.common_app_label_name),
                             fontWeight = FontWeight.SemiBold
                         )
                     }
@@ -179,7 +178,7 @@ private fun MainScreenContent(
                     },
                     text = {
                         Text(
-                            text = stringResource(R.string.scan_now),
+                            text = stringResource(R.string.main_action_button_scan),
                             fontWeight = FontWeight.SemiBold
                         )
                     },
@@ -252,7 +251,7 @@ private fun MainScreenContent(
 @Composable
 private fun SetupIntro() {
     Text(
-        text = stringResource(R.string.setup_intro),
+        text = stringResource(R.string.main_label_setup_intro),
         modifier = Modifier.padding(horizontal = 4.dp),
         style = MaterialTheme.typography.bodyMedium,
         color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -370,9 +369,9 @@ private fun ReadinessSummary(
                 Text(
                     text = stringResource(
                         if (ready) {
-                            R.string.readiness_ready_title
+                            R.string.main_label_readiness_ready_title
                         } else {
-                            R.string.readiness_pending_title
+                            R.string.main_label_readiness_pending_title
                         }
                     ),
                     style = MaterialTheme.typography.titleMedium,
@@ -385,9 +384,9 @@ private fun ReadinessSummary(
                 Text(
                     text = stringResource(
                         if (ready) {
-                            R.string.readiness_ready_desc
+                            R.string.main_label_readiness_ready_desc
                         } else {
-                            R.string.readiness_pending_desc
+                            R.string.main_label_readiness_pending_desc
                         }
                     ),
                     style = MaterialTheme.typography.bodySmall,
@@ -416,37 +415,37 @@ private fun PermissionSection(
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         PermissionCard(
             icon = Icons.Default.Accessibility,
-            title = stringResource(R.string.perm_accessibility_title),
-            description = stringResource(R.string.perm_accessibility_desc),
+            title = stringResource(R.string.permission_accessibility_label_title),
+            description = stringResource(R.string.permission_accessibility_label_desc),
             granted = accessibilityGranted,
-            actionLabel = stringResource(R.string.action_open_settings),
+            actionLabel = stringResource(R.string.common_action_button_settings),
             onAction = onAccessibility
         )
 
         PermissionCard(
             icon = Icons.Default.Layers,
-            title = stringResource(R.string.perm_overlay_title),
-            description = stringResource(R.string.perm_overlay_desc),
+            title = stringResource(R.string.permission_overlay_label_title),
+            description = stringResource(R.string.permission_overlay_label_desc),
             granted = overlayGranted,
-            actionLabel = stringResource(R.string.action_grant),
+            actionLabel = stringResource(R.string.common_action_button_grant),
             onAction = onOverlay
         )
 
         PermissionCard(
             icon = Icons.Default.Notifications,
-            title = stringResource(R.string.perm_notifications_title),
-            description = stringResource(R.string.perm_notifications_desc),
+            title = stringResource(R.string.permission_notifications_label_title),
+            description = stringResource(R.string.permission_notifications_label_desc),
             granted = notificationsGranted,
-            actionLabel = stringResource(R.string.perm_notifications_action),
+            actionLabel = stringResource(R.string.permission_notifications_action_button_grant),
             onAction = onNotifications
         )
 
         PermissionCard(
             icon = Icons.Default.Image,
-            title = stringResource(R.string.perm_projection_title),
-            description = stringResource(R.string.perm_projection_desc),
+            title = stringResource(R.string.permission_projection_label_title),
+            description = stringResource(R.string.permission_projection_label_desc),
             granted = true,
-            actionLabel = stringResource(R.string.ocr_download_title),
+            actionLabel = stringResource(R.string.ocr_package_label_title),
             onAction = onOcr,
             infoOnly = true
         )
@@ -634,7 +633,7 @@ private fun TileSetupCard() {
 
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = stringResource(R.string.tile_setup_title),
+                    text = stringResource(R.string.tile_setup_label_title),
                     style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.SemiBold,
                     color = MaterialTheme.colorScheme.onSecondaryContainer
@@ -643,7 +642,7 @@ private fun TileSetupCard() {
                 Spacer(modifier = Modifier.height(3.dp))
 
                 Text(
-                    text = stringResource(R.string.tile_setup_desc),
+                    text = stringResource(R.string.tile_setup_label_desc),
                     style = MaterialTheme.typography.bodySmall,
                     color =
                         MaterialTheme.colorScheme.onSecondaryContainer
@@ -668,14 +667,14 @@ private fun HistoryHeader(
 
         Column(modifier = Modifier.weight(1f)) {
             Text(
-                text = stringResource(R.string.history_title),
+                text = stringResource(R.string.history_label_title),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold
             )
 
             if (hasHistory) {
                 Text(
-                    text = stringResource(R.string.history_title),
+                    text = stringResource(R.string.history_label_title),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -689,7 +688,7 @@ private fun HistoryHeader(
         ) {
             TextButton(onClick = onClear) {
                 Text(
-                    text = stringResource(R.string.history_clear),
+                    text = stringResource(R.string.history_action_button_clear),
                     fontWeight = FontWeight.SemiBold
                 )
             }
@@ -762,7 +761,7 @@ private fun EmptyHistory() {
             Spacer(modifier = Modifier.height(12.dp))
 
             Text(
-                text = stringResource(R.string.history_empty),
+                text = stringResource(R.string.history_label_empty),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -842,8 +841,8 @@ private fun HistoryRow(
 private fun sourceLabel(source: ExtractionMode): String =
     stringResource(
         id = when (source) {
-            ExtractionMode.ACCESSIBILITY -> R.string.mode_accessibility
-            ExtractionMode.OCR -> R.string.mode_ocr
+            ExtractionMode.ACCESSIBILITY -> R.string.common_mode_label_accessibility
+            ExtractionMode.OCR -> R.string.common_mode_label_ocr
         }
     )
 

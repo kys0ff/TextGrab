@@ -1,88 +1,104 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="accessibility_service_description">يقرأ تكست غراب النص الموجود على شاشتك الحالية حتى تتمكن من النقر لنسخ أي كلمة أو سطر أو فقرة — بما في ذلك النصوص العربية واللاتينية. تتم المعالجة على الجهاز ولا يتم رفع أي بيانات.</string>
-    <string name="accessibility_service_label">استخراج النص من تكست غراب</string>
-    <string name="action_grant">منح الإذن</string>
-    <string name="action_open_settings">فتح الإعدادات</string>
-    <string name="app_tagline">التقط أي نص على شاشتك</string>
-    <string name="copied_multi_toast">تم نسخ %1$d عنصرًا</string>
-    <string name="copied_toast">تم النسخ إلى الحافظة</string>
-    <string name="history_clear">مسح</string>
-    <string name="history_empty">سيظهر هنا النص الذي تنسخه.</string>
-    <string name="history_title">سجل النسخ</string>
-    <string name="mode_accessibility">إمكانية الوصول</string>
-    <string name="mode_ocr">التعرّف الضوئي</string>
-    <string name="notif_capture_text">يتم التقاط لقطة للتعرف على النص على الجهاز…</string>
-    <string name="notif_capture_title">يقوم تكست غراب بقراءة الشاشة</string>
-    <string name="notif_channel_capture">التقاط الشاشة</string>
-    <string name="ocr_lang_arabic">العربية</string>
-    <string name="ocr_lang_both">كلاهما (عربي + إنجليزي)</string>
-    <string name="ocr_lang_auto">تلقائي (كل الحزم المثبتة)</string>
-    <string name="ocr_lang_latin">الإنجليزية / اللاتينية</string>
-    <string name="ocr_lang_french">الفرنسية</string>
-    <string name="ocr_lang_german">الألمانية</string>
-    <string name="ocr_lang_chinese">الصينية</string>
-    <string name="ocr_lang_japanese">اليابانية</string>
-    <string name="ocr_lang_korean">الكورية</string>
-    <string name="notif_channel_download">التنزيلات</string>
-    <string name="notif_download_title">جاري تنزيل بيانات OCR</string>
-    <string name="notif_download_desc">جاري تنزيل %1$s (%2$s)…</string>
-    <string name="notif_download_success">تم تنزيل %1$s بنجاح.</string>
-    <string name="notif_download_failed">فشل تنزيل %1$s.</string>
-    <string name="overlay_close">إغلاق</string>
-    <string name="overlay_collapse">طي</string>
-    <string name="overlay_copy_all">نسخ الكل</string>
-    <string name="overlay_copy_selected">نسخ (%1$d)</string>
-    <string name="overlay_denied">تم رفض إذن التقاط الشاشة.</string>
-    <string name="overlay_empty_accessibility">لم يُعثر على نص قابل للقراءة. بدّل إلى وضع OCR للصور أو المحتوى المحمي.</string>
-    <string name="overlay_empty_ocr">لم يتم اكتشاف أي نص على الشاشة.</string>
-    <string name="overlay_expand">توسيع</string>
-    <string name="overlay_hint_tap">انقر على أي مربع لبدء التحديد</string>
-    <string name="overlay_rescan">إعادة المسح</string>
-    <string name="overlay_scroll">تمرير</string>
-    <string name="overlay_scroll_done">انتهيت من التمرير</string>
-    <string name="overlay_scanning">جارٍ المسح…</string>
-    <string name="overlay_loading_model">جاري تحميل نموذج OCR…</string>
-    <string name="overlay_select">تحديد</string>
-    <string name="perm_accessibility_desc">المحرك الأساسي. يقرأ النص مباشرةً من النافذة النشطة — سريع ودقيق وموفّر للبطارية.</string>
-    <string name="perm_accessibility_title">خدمة إمكانية الوصول</string>
-    <string name="perm_notifications_action">منح الإذن</string>
-    <string name="perm_notifications_desc">مطلوب لإظهار مؤشر الحالة بينما يقوم تكست غراب بقراءة شاشتك للتعرف الضوئي على النص.</string>
-    <string name="perm_notifications_title">الإشعارات</string>
-    <string name="perm_overlay_desc">يسمح لتكست غراب برسم طبقة النص القابلة للتحديد فوق ما تشاهده.</string>
-    <string name="perm_overlay_title">العرض فوق التطبيقات الأخرى</string>
-    <string name="perm_projection_desc">يُستخدم فقط عندما يتعذّر قراءة الشاشة مباشرةً — الصور واللوحات والألعاب والعروض المحمية. تُطلب الموافقة في كل مرة.</string>
-    <string name="perm_projection_title">التقاط الشاشة (احتياطي OCR)</string>
-    <string name="scan_now">التقاط الآن</string>
-    <string name="setup_intro">فعّل العناصر أدناه، أضف مربّع الإعدادات السريعة، ثم التقط النص من أي مكان.</string>
-    <string name="setup_title">الإعداد</string>
-    <string name="status_granted">مُفعّل</string>
-    <string name="status_needed">مطلوب إجراء</string>
-    <string name="tile_label">تكست غراب</string>
-    <string name="tile_setup_desc">اسحب لأسفل مرتين، اضغط على زر التعديل (القلم)، ثم اسحب مربّع تكست غراب إلى المربعات النشطة. اضغط عليه في أي وقت لالتقاط النص فورًا.</string>
-    <string name="tile_setup_title">أضف مربّع الإعدادات السريعة</string>
-    <string name="ocr_download_title">حزم OCR</string>
-    <string name="ocr_download_desc">قم بتنزيل بيانات اللغة للتعرف الضوئي على النصوص بدون إنترنت. النماذج عالية الدقة (الأفضل) أبطأ وأكبر، بينما النماذج المحسنة (السريعة) تستهلك ذاكرة أقل.</string>
-    <string name="ocr_version_fast">سريع</string>
-    <string name="ocr_version_standard">قياسي</string>
-    <string name="ocr_version_best">الأفضل</string>
-    <string name="ocr_recommended">موصى به</string>
-    <string name="ocr_download">تنزيل</string>
-    <string name="ocr_downloading">جاري التنزيل (%1$d%%)</string>
-    <string name="ocr_installed">مثبت</string>
-    <string name="ocr_delete">حذف</string>
-    <string name="ocr_set_default">تعيين كافتراضي</string>
-    <string name="ocr_refresh">تحديث أحجام النماذج</string>
-    <string name="ocr_missing_title">بيانات اللغة مفقودة</string>
-    <string name="ocr_missing_desc">بيانات %1$s لم يتم تنزيلها بعد. هل ترغب في تنزيلها الآن للتعرف الضوئي على النصوص بدون إنترنت؟</string>
-    <string name="ocr_auto_warning_title">تحذير الأداء</string>
-    <string name="ocr_auto_warning_desc">استخدام نماذج OCR متعددة في نفس الوقت قد يؤدي إلى إبطاء التعرف وزيادة استهلاك الذاكرة بشكل كبير على بعض الأجهزة. هل تريد المتابعة على أي حال؟</string>
-    <string name="action_cancel">إلغاء</string>
-    <string name="action_download">تنزيل</string>
-    <string name="ocr_missing_model_generic">نموذج OCR غير موجود. يرجى تنزيله من الإعدادات.</string>
+    <!-- Common UI -->
+    <string name="common_app_label_tagline">التقط أي نص على شاشتك</string>
+    <string name="common_action_button_grant">منح الإذن</string>
+    <string name="common_action_button_settings">فتح الإعدادات</string>
+    <string name="common_action_button_cancel">إلغاء</string>
+    <string name="common_action_button_download">تنزيل</string>
+    <string name="common_toast_copied">تم النسخ إلى الحافظة</string>
+    <string name="common_toast_multi_copied">تم نسخ %1$d عنصرًا</string>
+    <string name="common_mode_label_accessibility">إمكانية الوصول</string>
+    <string name="common_mode_label_ocr">التعرّف الضوئي</string>
+    <string name="common_status_label_granted">مُفعّل</string>
+    <string name="common_status_label_needed">مطلوب إجراء</string>
 
-    <string name="readiness_ready_title">جاهز تمامًا!</string>
-    <string name="readiness_pending_title">أوشكت على الانتهاء</string>
-    <string name="readiness_ready_desc">تكست غراب جاهز للاستخدام. افتح أي تطبيق واضغط على المربع لالتقاط النص.</string>
-    <string name="readiness_pending_desc">أكمل خطوات الإعداد أدناه لبدء التقاط النص من شاشتك.</string>
+    <!-- Accessibility Service -->
+    <string name="accessibility_service_label_name">استخراج النص من تكست غراب</string>
+    <string name="accessibility_service_label_description">يقرأ تكست غراب النص الموجود على شاشتك الحالية حتى تتمكن من النقر لنسخ أي كلمة أو سطر أو فقرة — بما في ذلك النصوص العربية واللاتينية. تتم المعالجة على الجهاز ولا يتم رفع أي بيانات.</string>
+
+    <!-- Main Screen -->
+    <string name="main_action_button_scan">التقاط الآن</string>
+    <string name="main_label_setup_title">الإعداد</string>
+    <string name="main_label_setup_intro">فعّل العناصر أدناه، أضف مربّع الإعدادات السريعة، ثم التقط النص من أي مكان.</string>
+    <string name="main_label_readiness_ready_title">جاهز تمامًا!</string>
+    <string name="main_label_readiness_pending_title">أوشكت على الانتهاء</string>
+    <string name="main_label_readiness_ready_desc">تكست غراب جاهز للاستخدام. افتح أي تطبيق واضغط على المربع لالتقاط النص.</string>
+    <string name="main_label_readiness_pending_desc">أكمل خطوات الإعداد أدناه لبدء التقاط النص من شاشتك.</string>
+
+    <!-- History -->
+    <string name="history_label_title">سجل النسخ</string>
+    <string name="history_label_empty">سيظهر هنا النص الذي تنسخه.</string>
+    <string name="history_action_button_clear">مسح</string>
+
+    <!-- Overlay UI -->
+    <string name="overlay_action_button_close">إغلاق</string>
+    <string name="overlay_action_button_collapse">طي</string>
+    <string name="overlay_action_button_expand">توسيع</string>
+    <string name="overlay_action_button_select">تحديد</string>
+    <string name="overlay_action_button_rescan">إعادة المسح</string>
+    <string name="overlay_action_button_scroll">تمرير</string>
+    <string name="overlay_action_button_scroll_done">انتهيت من التمرير</string>
+    <string name="overlay_action_button_copy_all">نسخ الكل</string>
+    <string name="overlay_action_button_copy_selected">نسخ (%1$d)</string>
+    <string name="overlay_label_scanning">جارٍ المسح…</string>
+    <string name="overlay_label_loading_model">جاري تحميل نموذج OCR…</string>
+    <string name="overlay_label_hint_tap">انقر على أي مربع لبدء التحديد</string>
+    <string name="overlay_label_permission_denied">تم رفض إذن التقاط الشاشة.</string>
+    <string name="overlay_label_empty_accessibility">لم يُعثر على نص قابل للقراءة. بدّل إلى وضع OCR للصور أو المحتوى المحمي.</string>
+    <string name="overlay_label_empty_ocr">لم يتم اكتشاف أي نص على الشاشة.</string>
+
+    <!-- Notifications -->
+    <string name="notif_capture_label_title">يقوم تكست غراب بقراءة الشاشة</string>
+    <string name="notif_capture_label_text">يتم التقاط لقطة للتعرف على النص على الجهاز…</string>
+    <string name="notif_capture_channel_name">التقاط الشاشة</string>
+    <string name="notif_download_label_title">جاري تنزيل بيانات OCR</string>
+    <string name="notif_download_label_desc">جاري تنزيل %1$s (%2$s)…</string>
+    <string name="notif_download_label_success">تم تنزيل %1$s بنجاح.</string>
+    <string name="notif_download_label_failed">فشل تنزيل %1$s.</string>
+    <string name="notif_download_channel_name">التنزيلات</string>
+
+    <!-- OCR Packages -->
+    <string name="ocr_package_label_title">حزم OCR</string>
+    <string name="ocr_package_label_desc">قم بتنزيل بيانات اللغة للتعرف الضوئي على النصوص بدون إنترنت. النماذج عالية الدقة (الأفضل) أبطأ وأكبر، بينما النماذج المحسنة (السريعة) تستهلك ذاكرة أقل.</string>
+    <string name="ocr_package_label_version_fast">سريع</string>
+    <string name="ocr_package_label_version_standard">قياسي</string>
+    <string name="ocr_package_label_version_best">الأفضل</string>
+    <string name="ocr_package_label_recommended">موصى به</string>
+    <string name="ocr_package_label_downloading">جاري التنزيل (%1$d%%)</string>
+    <string name="ocr_package_label_installed">مثبت</string>
+    <string name="ocr_package_label_missing_title">بيانات اللغة مفقودة</string>
+    <string name="ocr_package_label_missing_desc">بيانات %1$s لم يتم تنزيلها بعد. هل ترغب في تنزيلها الآن للتعرف الضوئي على النصوص بدون إنترنت؟</string>
+    <string name="ocr_package_label_missing_generic">نموذج OCR غير موجود. يرجى تنزيله من الإعدادات.</string>
+    <string name="ocr_package_label_auto_warning_title">تحذير الأداء</string>
+    <string name="ocr_package_label_auto_warning_desc">استخدام نماذج OCR متعددة في نفس الوقت قد يؤدي إلى إبطاء التعرف وزيادة استهلاك الذاكرة بشكل كبير على بعض الأجهزة. هل تريد المتابعة على أي حال؟</string>
+    <string name="ocr_package_action_button_download">تنزيل</string>
+    <string name="ocr_package_action_button_delete">حذف</string>
+    <string name="ocr_package_action_button_set_default">تعيين كافتراضي</string>
+    <string name="ocr_package_action_button_refresh">تحديث أحجام النماذج</string>
+    <string name="ocr_lang_label_arabic">العربية</string>
+    <string name="ocr_lang_label_latin">الإنجليزية / اللاتينية</string>
+    <string name="ocr_lang_label_french">الفرنسية</string>
+    <string name="ocr_lang_label_german">الألمانية</string>
+    <string name="ocr_lang_label_chinese">الصينية</string>
+    <string name="ocr_lang_label_japanese">اليابانية</string>
+    <string name="ocr_lang_label_korean">الكورية</string>
+    <string name="ocr_lang_label_both">كلاهما (عربي + إنجليزي)</string>
+    <string name="ocr_lang_label_auto">تلقائي (كل الحزم المثبتة)</string>
+
+    <!-- Permissions -->
+    <string name="permission_accessibility_label_title">خدمة إمكانية الوصول</string>
+    <string name="permission_accessibility_label_desc">المحرك الأساسي. يقرأ النص مباشرةً من النافذة النشطة — سريع ودقيق وموفّر للبطارية.</string>
+    <string name="permission_overlay_label_title">العرض فوق التطبيقات الأخرى</string>
+    <string name="permission_overlay_label_desc">يسمح لتكست غراب برسم طبقة النص القابلة للتحديد فوق ما تشاهده.</string>
+    <string name="permission_notifications_label_title">الإشعارات</string>
+    <string name="permission_notifications_label_desc">مطلوب لإظهار مؤشر الحالة بينما يقوم تكست غراب بقراءة شاشتك للتعرف الضوئي على النص.</string>
+    <string name="permission_notifications_action_button_grant">منح الإذن</string>
+    <string name="permission_projection_label_title">التقاط الشاشة (احتياطي OCR)</string>
+    <string name="permission_projection_label_desc">يُستخدم فقط عندما يتعذّر قراءة الشاشة مباشرةً — الصور واللوحات والألعاب والعروض المحمية. تُطلب الموافقة في كل مرة.</string>
+
+    <!-- Quick Settings Tile -->
+    <string name="tile_label_name">تكست غراب</string>
+    <string name="tile_setup_label_title">أضف مربّع الإعدادات السريعة</string>
+    <string name="tile_setup_label_desc">اسحب لأسفل مرتين، اضغط على زر التعديل (القلم)، ثم اسحب مربّع تكست غراب إلى المربعات النشطة. اضغط عليه في أي وقت لالتقاط النص فورًا.</string>
 </resources>

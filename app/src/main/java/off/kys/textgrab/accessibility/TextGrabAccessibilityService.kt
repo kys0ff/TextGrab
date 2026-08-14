@@ -47,7 +47,7 @@ class TextGrabAccessibilityService : AccessibilityService() {
                 clipboardHelper.copyAll(
                     items,
                     source,
-                    getString(R.string.copied_multi_toast, items.size),
+                    getString(R.string.common_toast_multi_copied, items.size),
                 )
             },
             onSwitchMode = { mode ->

@@ -100,7 +100,7 @@ private fun OcrPackageContent(
                 title = {
                     Column {
                         Text(
-                            text = stringResource(R.string.ocr_download_title),
+                            text = stringResource(R.string.ocr_package_label_title),
                             style = MaterialTheme.typography.titleLarge,
                             fontWeight = FontWeight.SemiBold
                         )
@@ -124,7 +124,7 @@ private fun OcrPackageContent(
                     ) {
                         Icon(
                             imageVector = Icons.Default.Refresh,
-                            contentDescription = stringResource(R.string.ocr_refresh)
+                            contentDescription = stringResource(R.string.ocr_package_action_button_refresh)
                         )
                     }
                 },
@@ -170,7 +170,7 @@ private fun OcrIntro() {
         )
     ) {
         Text(
-            text = stringResource(R.string.ocr_download_desc),
+            text = stringResource(R.string.ocr_package_label_desc),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             lineHeight = MaterialTheme.typography.bodyMedium.lineHeight
@@ -309,7 +309,7 @@ private fun PackageHeader(
             Spacer(modifier = Modifier.height(2.dp))
 
             Text(
-                text = stringResource(R.string.ocr_download_title),
+                text = stringResource(R.string.ocr_package_label_title),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -436,7 +436,7 @@ private fun OcrVersionRow(
                         Spacer(modifier = Modifier.size(6.dp))
 
                         Text(
-                            text = stringResource(R.string.ocr_set_default),
+                            text = stringResource(R.string.ocr_package_action_button_set_default),
                             style = MaterialTheme.typography.bodySmall,
                             fontWeight = FontWeight.Medium,
                             color = MaterialTheme.colorScheme.primary
@@ -513,7 +513,7 @@ private fun RecommendedLabel() {
         color = MaterialTheme.colorScheme.secondaryContainer
     ) {
         Text(
-            text = stringResource(R.string.ocr_recommended),
+            text = stringResource(R.string.ocr_package_label_recommended),
             modifier = Modifier.padding(
                 horizontal = 7.dp,
                 vertical = 3.dp
@@ -551,7 +551,7 @@ private fun DownloadedActions(
                 Icon(
                     imageVector = Icons.Default.Check,
                     contentDescription = stringResource(
-                        R.string.ocr_set_default
+                        R.string.ocr_package_action_button_set_default
                     ),
                     modifier = Modifier.size(20.dp)
                 )
@@ -564,7 +564,7 @@ private fun DownloadedActions(
                 Icon(
                     imageVector = Icons.Default.Check,
                     contentDescription = stringResource(
-                        R.string.ocr_set_default
+                        R.string.ocr_package_action_button_set_default
                     ),
                     modifier = Modifier.size(20.dp)
                 )
@@ -585,7 +585,7 @@ private fun DownloadedActions(
             Icon(
                 imageVector = Icons.Default.DeleteOutline,
                 contentDescription = stringResource(
-                    R.string.ocr_delete
+                    R.string.ocr_package_action_button_delete
                 ),
                 tint = MaterialTheme.colorScheme.error
             )
@@ -637,7 +637,7 @@ private fun DownloadButton(onClick: () -> Unit) {
         Icon(
             imageVector = Icons.Default.CloudDownload,
             contentDescription = stringResource(
-                R.string.ocr_download
+                R.string.ocr_package_action_button_download
             ),
             modifier = Modifier.size(21.dp)
         )
@@ -650,12 +650,12 @@ private fun versionName(
 ): String {
     return when (version) {
         TesseractVersion.FAST ->
-            stringResource(R.string.ocr_version_fast)
+            stringResource(R.string.ocr_package_label_version_fast)
 
         TesseractVersion.STANDARD ->
-            stringResource(R.string.ocr_version_standard)
+            stringResource(R.string.ocr_package_label_version_standard)
 
         TesseractVersion.BEST ->
-            stringResource(R.string.ocr_version_best)
+            stringResource(R.string.ocr_package_label_version_best)
     }
 }

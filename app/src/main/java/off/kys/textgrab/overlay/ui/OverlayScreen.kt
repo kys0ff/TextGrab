@@ -245,7 +245,7 @@ fun OverlayScreen(
                                 modifier = Modifier.size(20.dp)
                             )
                             Text(
-                                stringResource(R.string.overlay_scroll_done),
+                                stringResource(R.string.overlay_action_button_scroll_done),
                                 style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold)
                             )
                         }
@@ -407,19 +407,19 @@ fun OverlayScreen(
                     if (autoModeWarningDialog) {
                         InlineAlertDialog(
                             onDismissRequest = { autoModeWarningDialog = false },
-                            title = { Text(stringResource(R.string.ocr_auto_warning_title)) },
-                            text = { Text(stringResource(R.string.ocr_auto_warning_desc)) },
+                            title = { Text(stringResource(R.string.ocr_package_label_auto_warning_title)) },
+                            text = { Text(stringResource(R.string.ocr_package_label_auto_warning_desc)) },
                             confirmButton = {
                                 TextButton(onClick = {
                                     autoModeWarningDialog = false
                                     onSwitchLanguage(OcrLanguage.AUTO)
                                 }) {
-                                    Text(stringResource(R.string.action_grant))
+                                    Text(stringResource(R.string.common_action_button_grant))
                                 }
                             },
                             dismissButton = {
                                 TextButton(onClick = { autoModeWarningDialog = false }) {
-                                    Text(stringResource(R.string.action_cancel))
+                                    Text(stringResource(R.string.common_action_button_cancel))
                                 }
                             }
                         )
@@ -428,11 +428,11 @@ fun OverlayScreen(
                     missingLanguageDialog?.let { lang ->
                         InlineAlertDialog(
                             onDismissRequest = { missingLanguageDialog = null },
-                            title = { Text(stringResource(R.string.ocr_missing_title)) },
+                            title = { Text(stringResource(R.string.ocr_package_label_missing_title)) },
                             text = {
                                 Text(
                                     stringResource(
-                                        R.string.ocr_missing_desc,
+                                        R.string.ocr_package_label_missing_desc,
                                         stringResource(lang.toDisplayString())
                                     )
                                 )
@@ -442,12 +442,12 @@ fun OverlayScreen(
                                     missingLanguageDialog = null
                                     onOpenDownload()
                                 }) {
-                                    Text(stringResource(R.string.action_download))
+                                    Text(stringResource(R.string.common_action_button_download))
                                 }
                             },
                             dismissButton = {
                                 TextButton(onClick = { missingLanguageDialog = null }) {
-                                    Text(stringResource(R.string.action_cancel))
+                                    Text(stringResource(R.string.common_action_button_cancel))
                                 }
                             }
                         )
@@ -624,7 +624,7 @@ private fun OverlayHeader(
 
                 Column(Modifier.weight(1f)) {
                     Text(
-                        stringResource(R.string.app_name),
+                        stringResource(R.string.common_app_label_name),
                         style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
                         color = scheme.onSurface,
                         maxLines = 1,
@@ -637,9 +637,9 @@ private fun OverlayHeader(
                         Text(
                             text = stringResource(
                                 if (currentMode == ExtractionMode.ACCESSIBILITY) {
-                                    R.string.mode_accessibility
+                                    R.string.common_mode_label_accessibility
                                 } else {
-                                    R.string.mode_ocr
+                                    R.string.common_mode_label_ocr
                                 },
                             ),
                             style = MaterialTheme.typography.labelSmall,
@@ -658,9 +658,9 @@ private fun OverlayHeader(
                     Icon(
                         imageVector = Icons.Filled.ExpandMore,
                         contentDescription = if (isExpanded) {
-                            stringResource(R.string.overlay_collapse)
+                            stringResource(R.string.overlay_action_button_collapse)
                         } else {
-                            stringResource(R.string.overlay_expand)
+                            stringResource(R.string.overlay_action_button_expand)
                         },
                         modifier = Modifier
                             .size(18.dp)
@@ -674,7 +674,7 @@ private fun OverlayHeader(
                 ) {
                     Icon(
                         Icons.Filled.SwapVert,
-                        contentDescription = stringResource(R.string.overlay_scroll),
+                        contentDescription = stringResource(R.string.overlay_action_button_scroll),
                         modifier = Modifier.size(18.dp),
                     )
                 }
@@ -682,7 +682,7 @@ private fun OverlayHeader(
                 FilledTonalIconButton(onClick = onRescan, modifier = Modifier.size(36.dp)) {
                     Icon(
                         Icons.Filled.Refresh,
-                        contentDescription = stringResource(R.string.overlay_rescan),
+                        contentDescription = stringResource(R.string.overlay_action_button_rescan),
                         modifier = Modifier.size(18.dp),
                     )
                 }
@@ -697,7 +697,7 @@ private fun OverlayHeader(
                 ) {
                     Icon(
                         Icons.Filled.Close,
-                        contentDescription = stringResource(R.string.overlay_close),
+                        contentDescription = stringResource(R.string.overlay_action_button_close),
                         modifier = Modifier.size(18.dp),
                     )
                 }
@@ -719,7 +719,7 @@ private fun OverlayHeader(
                                     modifier = Modifier.size(18.dp),
                                 )
                             },
-                            label = { Text(stringResource(R.string.mode_accessibility)) },
+                            label = { Text(stringResource(R.string.common_mode_label_accessibility)) },
                         )
                         SegmentedButton(
                             selected = mode == ExtractionMode.OCR,
@@ -732,7 +732,7 @@ private fun OverlayHeader(
                                     modifier = Modifier.size(18.dp),
                                 )
                             },
-                            label = { Text(stringResource(R.string.mode_ocr)) },
+                            label = { Text(stringResource(R.string.common_mode_label_ocr)) },
                         )
                     }
 
@@ -814,7 +814,7 @@ private fun LanguageSelector(
             ) {
                 Icon(
                     Icons.Default.Language,
-                    contentDescription = stringResource(R.string.ocr_download_title),
+                    contentDescription = stringResource(R.string.ocr_package_label_title),
                     modifier = Modifier.size(16.dp)
                 )
             }
@@ -823,14 +823,14 @@ private fun LanguageSelector(
 }
 
 private fun OcrLanguage.toDisplayString(): Int = when (this) {
-    OcrLanguage.LATIN -> R.string.ocr_lang_latin
-    OcrLanguage.ARABIC -> R.string.ocr_lang_arabic
-    OcrLanguage.FRENCH -> R.string.ocr_lang_french
-    OcrLanguage.GERMAN -> R.string.ocr_lang_german
-    OcrLanguage.CHINESE -> R.string.ocr_lang_chinese
-    OcrLanguage.JAPANESE -> R.string.ocr_lang_japanese
-    OcrLanguage.KOREAN -> R.string.ocr_lang_korean
-    OcrLanguage.AUTO -> R.string.ocr_lang_auto
+    OcrLanguage.LATIN -> R.string.ocr_lang_label_latin
+    OcrLanguage.ARABIC -> R.string.ocr_lang_label_arabic
+    OcrLanguage.FRENCH -> R.string.ocr_lang_label_french
+    OcrLanguage.GERMAN -> R.string.ocr_lang_label_german
+    OcrLanguage.CHINESE -> R.string.ocr_lang_label_chinese
+    OcrLanguage.JAPANESE -> R.string.ocr_lang_label_japanese
+    OcrLanguage.KOREAN -> R.string.ocr_lang_label_korean
+    OcrLanguage.AUTO -> R.string.ocr_lang_label_auto
 }
 
 private fun OcrLanguage.toTessCode(): String = when (this) {
@@ -904,7 +904,7 @@ private fun OverlayActionBar(
                 FilterChip(
                     selected = multiSelect,
                     onClick = onToggleSelect,
-                    label = { Text(stringResource(R.string.overlay_select)) },
+                    label = { Text(stringResource(R.string.overlay_action_button_select)) },
                     leadingIcon = {
                         Icon(
                             Icons.Filled.Checklist,
@@ -945,7 +945,7 @@ private fun OverlayActionBar(
                             modifier = Modifier.size(18.dp)
                         )
                         Spacer(Modifier.width(8.dp))
-                        Text(stringResource(R.string.overlay_copy_selected, selectedCount))
+                        Text(stringResource(R.string.overlay_action_button_copy_selected, selectedCount))
                     }
                 } else {
                     Button(
@@ -958,7 +958,7 @@ private fun OverlayActionBar(
                             modifier = Modifier.size(18.dp)
                         )
                         Spacer(Modifier.width(8.dp))
-                        Text(stringResource(R.string.overlay_copy_all))
+                        Text(stringResource(R.string.overlay_action_button_copy_all))
                     }
                 }
             }
@@ -984,7 +984,7 @@ private fun StatusCenter(
             )
             Spacer(Modifier.height(16.dp))
             Text(
-                stringResource(R.string.overlay_loading_model),
+                stringResource(R.string.overlay_label_loading_model),
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurface,
             )
@@ -998,7 +998,7 @@ private fun StatusCenter(
             )
             Spacer(Modifier.height(16.dp))
             Text(
-                stringResource(R.string.overlay_scanning),
+                stringResource(R.string.overlay_label_scanning),
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurface,
             )
@@ -1008,9 +1008,9 @@ private fun StatusCenter(
             IllustrationBadge(icon = Icons.Filled.SearchOff)
             Spacer(Modifier.height(16.dp))
             val message = if (mode == ExtractionMode.ACCESSIBILITY) {
-                stringResource(R.string.overlay_empty_accessibility)
+                stringResource(R.string.overlay_label_empty_accessibility)
             } else {
-                stringResource(R.string.overlay_empty_ocr)
+                stringResource(R.string.overlay_label_empty_ocr)
             }
             Text(
                 message,
@@ -1030,7 +1030,7 @@ private fun StatusCenter(
                         modifier = Modifier.size(18.dp)
                     )
                     Spacer(Modifier.width(8.dp))
-                    Text(stringResource(R.string.mode_ocr))
+                    Text(stringResource(R.string.common_mode_label_ocr))
                 }
             } else {
                 FilledTonalButton(
@@ -1043,7 +1043,7 @@ private fun StatusCenter(
                         modifier = Modifier.size(18.dp)
                     )
                     Spacer(Modifier.width(8.dp))
-                    Text(stringResource(R.string.overlay_rescan))
+                    Text(stringResource(R.string.overlay_action_button_rescan))
                 }
             }
         }
@@ -1072,7 +1072,7 @@ private fun StatusCenter(
                         modifier = Modifier.size(18.dp)
                     )
                     Spacer(Modifier.width(8.dp))
-                    Text(stringResource(R.string.ocr_download_title))
+                    Text(stringResource(R.string.ocr_package_label_title))
                 }
             }
         }

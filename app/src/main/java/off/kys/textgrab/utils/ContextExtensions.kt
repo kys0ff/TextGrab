@@ -15,7 +15,7 @@ fun Context.toast(message: String, duration: Int = Toast.LENGTH_SHORT) {
 
 fun Context.copy(
     text: String,
-    copyMessage: String = getString(R.string.copied_to_clipboard),
+    copyMessage: String? = getString(R.string.common_toast_copied),
     label: String = packageManager.getApplicationLabel(applicationInfo).toString()
 ) {
     fun maybeToast(message: String?) {
