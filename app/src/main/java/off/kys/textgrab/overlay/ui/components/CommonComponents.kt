@@ -23,12 +23,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.unit.dp
 
 @Composable
 fun IllustrationBadge(
-    icon: ImageVector,
+    painter: Painter,
     error: Boolean = false
 ) {
     val scheme = MaterialTheme.colorScheme
@@ -41,7 +41,7 @@ fun IllustrationBadge(
             .background(container),
         contentAlignment = Alignment.Center,
     ) {
-        Icon(icon, contentDescription = null, tint = content, modifier = Modifier.size(28.dp))
+        Icon(painter, contentDescription = null, tint = content, modifier = Modifier.size(28.dp))
     }
 }
 

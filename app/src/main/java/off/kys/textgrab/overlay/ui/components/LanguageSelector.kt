@@ -6,9 +6,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ErrorOutline
-import androidx.compose.material.icons.filled.Language
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
@@ -20,6 +17,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import off.kys.textgrab.R
@@ -66,7 +64,7 @@ fun LanguageSelector(
                 leadingIcon = if (!isInstalled) {
                     {
                         Icon(
-                            Icons.Default.ErrorOutline,
+                            painter = painterResource(R.drawable.ic_error_outline),
                             contentDescription = null,
                             modifier = Modifier.size(16.dp)
                         )
@@ -87,7 +85,7 @@ fun LanguageSelector(
                 modifier = Modifier.size(32.dp)
             ) {
                 Icon(
-                    Icons.Default.Language,
+                    painter = painterResource(R.drawable.ic_language),
                     contentDescription = stringResource(R.string.ocr_package_label_title),
                     modifier = Modifier.size(16.dp)
                 )

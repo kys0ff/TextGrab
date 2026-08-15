@@ -25,18 +25,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.OpenInNew
-import androidx.compose.material.icons.filled.Accessibility
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.ContentCopy
-import androidx.compose.material.icons.filled.DocumentScanner
-import androidx.compose.material.icons.filled.Image
-import androidx.compose.material.icons.filled.Inventory2
-import androidx.compose.material.icons.filled.Layers
-import androidx.compose.material.icons.filled.Notifications
-import androidx.compose.material.icons.filled.RocketLaunch
-import androidx.compose.material.icons.filled.Widgets
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -64,8 +54,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -132,10 +123,10 @@ private fun MainScreenContent(
     val ready = state.permissions.accessibility && state.permissions.overlay
 
     val grantedPermissions = listOf(
-            state.permissions.accessibility,
-            state.permissions.overlay,
-            state.permissions.notifications
-        ).count { it }
+        state.permissions.accessibility,
+        state.permissions.overlay,
+        state.permissions.notifications
+    ).count { it }
 
     Scaffold(
         modifier = Modifier
@@ -159,7 +150,6 @@ private fun MainScreenContent(
                 )
             )
         },
-
         floatingActionButton = {
             AnimatedVisibility(
                 visible = ready,
@@ -172,7 +162,7 @@ private fun MainScreenContent(
                     },
                     icon = {
                         Icon(
-                            imageVector = Icons.Default.DocumentScanner,
+                            painter = painterResource(R.drawable.ic_document_scanner),
                             contentDescription = null
                         )
                     },
@@ -239,11 +229,33 @@ private fun MainScreenContent(
                     HistoryCard(
                         history = state.history,
                         onCopy = {
-
+                            onEvent(MainEvent.OnHistoryCopy(it))
                         }
                     )
                 }
             }
+        }
+
+        if (state.showClearHistoryConfirmation) {
+            AlertDialog(
+                onDismissRequest = { onEvent(MainEvent.DismissClearHistoryDialog) },
+                confirmButton = {
+                    Button(
+                        onClick = { onEvent(MainEvent.ConfirmClearHistory) }
+                    ) {
+                        Text(stringResource(R.string.history_action_button_clear))
+                    }
+                },
+                dismissButton = {
+                    TextButton(
+                        onClick = { onEvent(MainEvent.DismissClearHistoryDialog) }
+                    ) {
+                        Text(stringResource(R.string.common_action_button_cancel))
+                    }
+                },
+                title = { Text(stringResource(R.string.history_clear_confirm_title)) },
+                text = { Text(stringResource(R.string.history_clear_confirm_desc)) }
+            )
         }
     }
 }
@@ -330,7 +342,7 @@ private fun ReadinessSummary(
                                 contentAlignment = Alignment.Center
                             ) {
                                 Icon(
-                                    imageVector = Icons.Default.RocketLaunch,
+                                    painter = painterResource(R.drawable.ic_rocket_launch),
                                     contentDescription = null,
                                     tint = MaterialTheme.colorScheme.onPrimary,
                                     modifier = Modifier.size(26.dp)
@@ -414,7 +426,7 @@ private fun PermissionSection(
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         PermissionCard(
-            icon = Icons.Default.Accessibility,
+            painter = painterResource(R.drawable.ic_accessibility),
             title = stringResource(R.string.permission_accessibility_label_title),
             description = stringResource(R.string.permission_accessibility_label_desc),
             granted = accessibilityGranted,
@@ -423,7 +435,7 @@ private fun PermissionSection(
         )
 
         PermissionCard(
-            icon = Icons.Default.Layers,
+            painter = painterResource(R.drawable.ic_layers),
             title = stringResource(R.string.permission_overlay_label_title),
             description = stringResource(R.string.permission_overlay_label_desc),
             granted = overlayGranted,
@@ -432,7 +444,7 @@ private fun PermissionSection(
         )
 
         PermissionCard(
-            icon = Icons.Default.Notifications,
+            painter = painterResource(R.drawable.ic_notifications),
             title = stringResource(R.string.permission_notifications_label_title),
             description = stringResource(R.string.permission_notifications_label_desc),
             granted = notificationsGranted,
@@ -441,7 +453,7 @@ private fun PermissionSection(
         )
 
         PermissionCard(
-            icon = Icons.Default.Image,
+            painter = painterResource(R.drawable.ic_image),
             title = stringResource(R.string.permission_projection_label_title),
             description = stringResource(R.string.permission_projection_label_desc),
             granted = true,
@@ -454,7 +466,7 @@ private fun PermissionSection(
 
 @Composable
 private fun PermissionCard(
-    icon: ImageVector,
+    painter: Painter,
     title: String,
     description: String,
     granted: Boolean,
@@ -495,7 +507,7 @@ private fun PermissionCard(
         ) {
 
             PermissionIcon(
-                icon = icon,
+                painter = painter,
                 granted = granted
             )
 
@@ -527,7 +539,7 @@ private fun PermissionCard(
                         if (infoOnly) {
                             Spacer(modifier = Modifier.size(6.dp))
                             Icon(
-                                imageVector = Icons.AutoMirrored.Filled.OpenInNew,
+                                painter = painterResource(R.drawable.ic_open_in_new),
                                 contentDescription = null,
                                 modifier = Modifier.size(16.dp)
                             )
@@ -548,7 +560,7 @@ private fun PermissionCard(
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
-                            imageVector = Icons.Default.Check,
+                            painter = painterResource(R.drawable.ic_check),
                             contentDescription = null,
                             tint = MaterialTheme.colorScheme.onPrimaryContainer,
                             modifier = Modifier.size(19.dp)
@@ -562,7 +574,7 @@ private fun PermissionCard(
 
 @Composable
 private fun PermissionIcon(
-    icon: ImageVector,
+    painter: Painter,
     granted: Boolean
 ) {
     val backgroundColor = if (granted) {
@@ -587,7 +599,7 @@ private fun PermissionIcon(
             contentAlignment = Alignment.Center
         ) {
             Icon(
-                imageVector = icon,
+                painter = painter,
                 contentDescription = null,
                 tint = iconColor,
                 modifier = Modifier.size(22.dp)
@@ -621,7 +633,7 @@ private fun TileSetupCard() {
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
-                        imageVector = Icons.Default.Widgets,
+                        painter = painterResource(R.drawable.ic_widgets),
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.onSecondaryContainer,
                         modifier = Modifier.size(22.dp)
@@ -750,7 +762,7 @@ private fun EmptyHistory() {
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
-                        imageVector = Icons.Default.Inventory2,
+                        painter = painterResource(R.drawable.ic_inventory_2),
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.size(27.dp)
@@ -818,10 +830,10 @@ private fun HistoryRow(
                     label = "copyIcon"
                 ) { copied ->
                     Icon(
-                        imageVector = if (copied) {
-                            Icons.Default.Check
+                        painter = if (copied) {
+                            painterResource(R.drawable.ic_check)
                         } else {
-                            Icons.Default.ContentCopy
+                            painterResource(R.drawable.ic_content_copy)
                         },
                         contentDescription = null,
                         tint = if (copied) {

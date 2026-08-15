@@ -17,10 +17,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Checklist
-import androidx.compose.material.icons.filled.ContentCopy
-import androidx.compose.material.icons.filled.DoneAll
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Button
@@ -35,6 +31,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import off.kys.textgrab.R
@@ -100,7 +97,7 @@ fun OverlayActionBar(
                     label = { Text(stringResource(R.string.overlay_action_button_select)) },
                     leadingIcon = {
                         Icon(
-                            Icons.Filled.Checklist,
+                            painter = painterResource(R.drawable.ic_checklist),
                             contentDescription = null,
                             modifier = Modifier.size(18.dp),
                         )
@@ -133,7 +130,7 @@ fun OverlayActionBar(
                         shape = RoundedCornerShape(18.dp),
                     ) {
                         Icon(
-                            Icons.Filled.ContentCopy,
+                            painter = painterResource(R.drawable.ic_content_copy),
                             contentDescription = null,
                             modifier = Modifier.size(18.dp)
                         )
@@ -146,7 +143,7 @@ fun OverlayActionBar(
                         shape = RoundedCornerShape(18.dp),
                     ) {
                         Icon(
-                            Icons.Filled.DoneAll,
+                            painter = painterResource(R.drawable.ic_done_all),
                             contentDescription = null,
                             modifier = Modifier.size(18.dp)
                         )

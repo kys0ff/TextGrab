@@ -23,16 +23,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Bolt
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.CloudDownload
-import androidx.compose.material.icons.filled.DeleteOutline
-import androidx.compose.material.icons.filled.Diamond
-import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material.icons.filled.Scale
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -45,6 +37,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -54,7 +47,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -111,7 +105,7 @@ private fun OcrPackageContent(
                         onClick = { navigator.pop() }
                     ) {
                         Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            painter = painterResource(R.drawable.ic_arrow_back),
                             contentDescription = null
                         )
                     }
@@ -123,7 +117,7 @@ private fun OcrPackageContent(
                         }
                     ) {
                         Icon(
-                            imageVector = Icons.Default.Refresh,
+                            painter = painterResource(R.drawable.ic_refresh),
                             contentDescription = stringResource(R.string.ocr_package_action_button_refresh)
                         )
                     }
@@ -135,26 +129,58 @@ private fun OcrPackageContent(
             )
         }
     ) { innerPadding ->
+        Box(modifier = Modifier.fillMaxSize()) {
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(
+                    start = 16.dp,
+                    end = 16.dp,
+                    top = innerPadding.calculateTopPadding() + 8.dp,
+                    bottom = innerPadding.calculateBottomPadding() + 32.dp
+                ),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                item { OcrIntro() }
 
-        LazyColumn(
-            modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(
-                start = 16.dp,
-                end = 16.dp,
-                top = innerPadding.calculateTopPadding() + 8.dp,
-                bottom = innerPadding.calculateBottomPadding() + 32.dp
-            ),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            item { OcrIntro() }
+                items(
+                    items = state.packages,
+                    key = { it.displayName }
+                ) { pkg ->
+                    OcrPackageCard(
+                        pkg = pkg,
+                        onEvent = onEvent
+                    )
+                }
+            }
 
-            items(
-                items = state.packages,
-                key = { it.displayName }
-            ) { pkg ->
-                OcrPackageCard(
-                    pkg = pkg,
-                    onEvent = onEvent
+            if (state.deleteConfirmation != null) {
+                val conf = state.deleteConfirmation
+                AlertDialog(
+                    onDismissRequest = { onEvent(OcrPackageEvent.DismissDeleteDialog) },
+                    confirmButton = {
+                        Button(
+                            onClick = { onEvent(OcrPackageEvent.ConfirmDelete(conf.pkg, conf.version)) }
+                        ) {
+                            Text(stringResource(R.string.ocr_package_action_button_delete))
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(
+                            onClick = { onEvent(OcrPackageEvent.DismissDeleteDialog) }
+                        ) {
+                            Text(stringResource(R.string.common_action_button_cancel))
+                        }
+                    },
+                    title = { Text(stringResource(R.string.ocr_package_delete_confirm_title)) },
+                    text = {
+                        Text(
+                            stringResource(
+                                R.string.ocr_package_delete_confirm_desc,
+                                conf.pkg.displayName,
+                                versionName(conf.version)
+                            )
+                        )
+                    }
                 )
             }
         }
@@ -184,7 +210,7 @@ private fun OcrIntro() {
  * BEST      -> tertiary
  */
 private data class VersionStyle(
-    val icon: ImageVector,
+    val painter: Painter,
     val accent: Color
 )
 
@@ -197,21 +223,21 @@ private fun versionStyle(
     return when (version) {
         TesseractVersion.FAST -> {
             VersionStyle(
-                icon = Icons.Default.Bolt,
+                painter = painterResource(R.drawable.ic_bolt),
                 accent = colors.secondary
             )
         }
 
         TesseractVersion.STANDARD -> {
             VersionStyle(
-                icon = Icons.Default.Scale,
+                painter = painterResource(R.drawable.ic_scale),
                 accent = colors.primary
             )
         }
 
         TesseractVersion.BEST -> {
             VersionStyle(
-                icon = Icons.Default.Diamond,
+                painter = painterResource(R.drawable.ic_diamond),
                 accent = colors.tertiary
             )
         }
@@ -329,7 +355,7 @@ private fun PackageHeader(
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
-                        imageVector = Icons.Default.CheckCircle,
+                        painter = painterResource(R.drawable.ic_check_circle),
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.onPrimaryContainer,
                         modifier = Modifier.size(20.dp)
@@ -498,7 +524,7 @@ private fun VersionIcon(
         contentAlignment = Alignment.Center
     ) {
         Icon(
-            imageVector = style.icon,
+            painter = style.painter,
             contentDescription = null,
             tint = iconTint,
             modifier = Modifier.size(21.dp)
@@ -549,7 +575,7 @@ private fun DownloadedActions(
                 modifier = Modifier.size(40.dp)
             ) {
                 Icon(
-                    imageVector = Icons.Default.Check,
+                    painter = painterResource(R.drawable.ic_check),
                     contentDescription = stringResource(
                         R.string.ocr_package_action_button_set_default
                     ),
@@ -562,7 +588,7 @@ private fun DownloadedActions(
                 modifier = Modifier.size(40.dp)
             ) {
                 Icon(
-                    imageVector = Icons.Default.Check,
+                    painter = painterResource(R.drawable.ic_check),
                     contentDescription = stringResource(
                         R.string.ocr_package_action_button_set_default
                     ),
@@ -583,7 +609,7 @@ private fun DownloadedActions(
             modifier = Modifier.size(40.dp)
         ) {
             Icon(
-                imageVector = Icons.Default.DeleteOutline,
+                painter = painterResource(R.drawable.ic_delete_outline),
                 contentDescription = stringResource(
                     R.string.ocr_package_action_button_delete
                 ),
@@ -635,7 +661,7 @@ private fun DownloadButton(onClick: () -> Unit) {
         modifier = Modifier.size(44.dp)
     ) {
         Icon(
-            imageVector = Icons.Default.CloudDownload,
+            painter = painterResource(R.drawable.ic_cloud_download),
             contentDescription = stringResource(
                 R.string.ocr_package_action_button_download
             ),
@@ -645,17 +671,8 @@ private fun DownloadButton(onClick: () -> Unit) {
 }
 
 @Composable
-private fun versionName(
-    version: TesseractVersion
-): String {
-    return when (version) {
-        TesseractVersion.FAST ->
-            stringResource(R.string.ocr_package_label_version_fast)
-
-        TesseractVersion.STANDARD ->
-            stringResource(R.string.ocr_package_label_version_standard)
-
-        TesseractVersion.BEST ->
-            stringResource(R.string.ocr_package_label_version_best)
-    }
+private fun versionName(version: TesseractVersion): String = when (version) {
+    TesseractVersion.FAST -> stringResource(R.string.ocr_package_label_version_fast)
+    TesseractVersion.STANDARD -> stringResource(R.string.ocr_package_label_version_standard)
+    TesseractVersion.BEST -> stringResource(R.string.ocr_package_label_version_best)
 }

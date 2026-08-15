@@ -23,12 +23,14 @@ class MainViewModel(
 ) : AndroidViewModel(application) {
 
     private val _permissions = MutableStateFlow(PermissionUiState())
+    private val _showClearHistoryConfirmation = MutableStateFlow(false)
 
     val state: StateFlow<MainState> = combine(
         historyRepository.history,
-        _permissions
-    ) { history, permissions ->
-        MainState(history, permissions)
+        _permissions,
+        _showClearHistoryConfirmation
+    ) { history, permissions, showClearHistory ->
+        MainState(history, permissions, showClearHistory)
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5_000),
@@ -37,7 +39,19 @@ class MainViewModel(
 
     fun onEvent(event: MainEvent) = when (event) {
         MainEvent.RefreshPermissions -> refreshPermissions()
-        MainEvent.ClearHistory -> historyRepository.clear()
+        MainEvent.ClearHistory -> {
+            _showClearHistoryConfirmation.value = true
+        }
+
+        MainEvent.ConfirmClearHistory -> {
+            _showClearHistoryConfirmation.value = false
+            historyRepository.clear()
+        }
+
+        MainEvent.DismissClearHistoryDialog -> {
+            _showClearHistoryConfirmation.value = false
+        }
+
         is MainEvent.OnHistoryCopy -> application.copy(event.entry.text)
     }
 

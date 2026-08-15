@@ -3,9 +3,10 @@ package off.kys.textgrab.ui.screens.ocr
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import off.kys.textgrab.ocr.OcrDownloadService
@@ -22,25 +23,40 @@ class OcrPackageViewModel(
     private val ocrEngine: OcrEngine
 ) : AndroidViewModel(application) {
 
-    val state: StateFlow<OcrPackageState> = repository.packages
-        .map { OcrPackageState(it) }
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5_000),
-            initialValue = OcrPackageState()
+    private val _deleteConfirmation = MutableStateFlow<DeleteConfirmation?>(null)
+
+    val state: StateFlow<OcrPackageState> = combine(
+        repository.packages,
+        _deleteConfirmation
+    ) { packages, deleteConfirmation ->
+        OcrPackageState(
+            packages = packages,
+            deleteConfirmation = deleteConfirmation
         )
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5_000),
+        initialValue = OcrPackageState()
+    )
 
     init {
         repository.refreshInstallationStates()
     }
 
-    fun onEvent(event: OcrPackageEvent) {
-        when (event) {
-            is OcrPackageEvent.Download -> download(event.pkg, event.version, event.url)
-            is OcrPackageEvent.Delete -> delete(event.pkg, event.version)
-            is OcrPackageEvent.SetDefault -> setDefault(event.pkg, event.version)
-            OcrPackageEvent.Refresh -> refresh()
+    fun onEvent(event: OcrPackageEvent) = when (event) {
+        is OcrPackageEvent.Download -> download(event.pkg, event.version, event.url)
+        is OcrPackageEvent.Delete -> {
+            _deleteConfirmation.value = DeleteConfirmation(event.pkg, event.version)
         }
+        is OcrPackageEvent.ConfirmDelete -> {
+            _deleteConfirmation.value = null
+            delete(event.pkg, event.version)
+        }
+        is OcrPackageEvent.DismissDeleteDialog -> {
+            _deleteConfirmation.value = null
+        }
+        is OcrPackageEvent.SetDefault -> setDefault(event.pkg, event.version)
+        OcrPackageEvent.Refresh -> refresh()
     }
 
     override fun onCleared() {

@@ -22,14 +22,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Accessibility
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.DocumentScanner
-import androidx.compose.material.icons.filled.ExpandMore
-import androidx.compose.material.icons.filled.Image
-import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material.icons.filled.SwapVert
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.FilledTonalIconButton
@@ -48,6 +40,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -55,9 +48,9 @@ import androidx.compose.ui.unit.dp
 import off.kys.textgrab.R
 import off.kys.textgrab.core.model.ExtractionMode
 import off.kys.textgrab.core.model.OcrLanguage
+import off.kys.textgrab.core.model.OverlayCommand
 import off.kys.textgrab.ocr.TessDataStore
 import off.kys.textgrab.overlay.OverlayBus
-import off.kys.textgrab.core.model.OverlayCommand
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -112,7 +105,7 @@ fun OverlayHeader(
                     contentAlignment = Alignment.Center,
                 ) {
                     Icon(
-                        Icons.Filled.DocumentScanner,
+                        painter = painterResource(R.drawable.ic_document_scanner),
                         contentDescription = null,
                         tint = scheme.onPrimaryContainer,
                         modifier = Modifier.size(20.dp),
@@ -155,7 +148,7 @@ fun OverlayHeader(
                 )
                 FilledTonalIconButton(onClick = onToggleExpand, modifier = Modifier.size(36.dp)) {
                     Icon(
-                        imageVector = Icons.Filled.ExpandMore,
+                        painter = painterResource(R.drawable.ic_expand_more),
                         contentDescription = if (isExpanded) {
                             stringResource(R.string.overlay_action_button_collapse)
                         } else {
@@ -172,7 +165,7 @@ fun OverlayHeader(
                     modifier = Modifier.size(36.dp)
                 ) {
                     Icon(
-                        Icons.Filled.SwapVert,
+                        painter = painterResource(R.drawable.ic_swap_vert),
                         contentDescription = stringResource(R.string.overlay_action_button_scroll),
                         modifier = Modifier.size(18.dp),
                     )
@@ -180,7 +173,7 @@ fun OverlayHeader(
                 Spacer(Modifier.width(6.dp))
                 FilledTonalIconButton(onClick = onRescan, modifier = Modifier.size(36.dp)) {
                     Icon(
-                        Icons.Filled.Refresh,
+                        painter = painterResource(R.drawable.ic_refresh),
                         contentDescription = stringResource(R.string.overlay_action_button_rescan),
                         modifier = Modifier.size(18.dp),
                     )
@@ -195,7 +188,7 @@ fun OverlayHeader(
                     ),
                 ) {
                     Icon(
-                        Icons.Filled.Close,
+                        painter = painterResource(R.drawable.ic_close),
                         contentDescription = stringResource(R.string.overlay_action_button_close),
                         modifier = Modifier.size(18.dp),
                     )
@@ -213,7 +206,7 @@ fun OverlayHeader(
                             shape = SegmentedButtonDefaults.itemShape(index = 0, count = 2),
                             icon = {
                                 Icon(
-                                    Icons.Filled.Accessibility,
+                                    painter = painterResource(R.drawable.ic_accessibility),
                                     contentDescription = null,
                                     modifier = Modifier.size(18.dp),
                                 )
@@ -226,7 +219,7 @@ fun OverlayHeader(
                             shape = SegmentedButtonDefaults.itemShape(index = 1, count = 2),
                             icon = {
                                 Icon(
-                                    Icons.Filled.Image,
+                                    painter = painterResource(R.drawable.ic_image),
                                     contentDescription = null,
                                     modifier = Modifier.size(18.dp),
                                 )

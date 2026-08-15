@@ -71,6 +71,9 @@ class OcrDownloadService : Service() {
                 }
             )
 
+            // Properly remove the foreground notification
+            ServiceCompat.stopForeground(this@OcrDownloadService, ServiceCompat.STOP_FOREGROUND_REMOVE)
+
             if (success) {
                 repository.updateDownloadState("${tessCode}_$version", DownloadState.Downloaded)
                 repository.refreshInstallationStates()
@@ -79,7 +82,6 @@ class OcrDownloadService : Service() {
                 repository.updateDownloadState("${tessCode}_$version", DownloadState.Error("Download failed"))
                 showCompletionNotification(displayName, false)
             }
-            stopForeground(STOP_FOREGROUND_DETACH)
             stopSelf()
         }
 
@@ -101,7 +103,7 @@ class OcrDownloadService : Service() {
         return NotificationCompat.Builder(this, channelId)
             .setContentTitle(getString(R.string.notif_download_label_title))
             .setContentText(getString(R.string.notif_download_label_desc, title, progressText))
-            .setSmallIcon(R.drawable.ic_tile_scan)
+            .setSmallIcon(R.drawable.ic_cloud_download)
             .setProgress(100, progress, false)
             .setContentIntent(pendingIntent)
             .setOngoing(true)
@@ -121,7 +123,7 @@ class OcrDownloadService : Service() {
         val notification = NotificationCompat.Builder(this, channelId)
             .setContentTitle(getString(R.string.common_app_label_name))
             .setContentText(message)
-            .setSmallIcon(R.drawable.ic_tile_scan)
+            .setSmallIcon(if (success) R.drawable.ic_check_circle else R.drawable.ic_error_outline)
             .setAutoCancel(true)
             .build()
         

@@ -5,12 +5,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CloudDownload
-import androidx.compose.material.icons.filled.ErrorOutline
-import androidx.compose.material.icons.filled.Image
-import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material.icons.filled.SearchOff
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
@@ -18,6 +12,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -64,7 +59,7 @@ fun StatusCenter(
         }
 
         OverlayStatus.Empty -> InfoCard(modifier) {
-            IllustrationBadge(icon = Icons.Filled.SearchOff)
+            IllustrationBadge(painter = painterResource(R.drawable.ic_search_off))
             Spacer(Modifier.height(16.dp))
             val message = if (mode == ExtractionMode.ACCESSIBILITY) {
                 stringResource(R.string.overlay_label_empty_accessibility)
@@ -84,7 +79,7 @@ fun StatusCenter(
                     shape = RoundedCornerShape(18.dp),
                 ) {
                     Icon(
-                        Icons.Filled.Image,
+                        painter = painterResource(R.drawable.ic_image),
                         contentDescription = null,
                         modifier = Modifier.size(18.dp)
                     )
@@ -97,7 +92,7 @@ fun StatusCenter(
                     shape = RoundedCornerShape(18.dp),
                 ) {
                     Icon(
-                        Icons.Filled.Refresh,
+                        painter = painterResource(R.drawable.ic_refresh),
                         contentDescription = null,
                         modifier = Modifier.size(18.dp)
                     )
@@ -111,7 +106,7 @@ fun StatusCenter(
             modifier,
             accentColor = MaterialTheme.colorScheme.error
         ) {
-            IllustrationBadge(icon = Icons.Filled.ErrorOutline, error = true)
+            IllustrationBadge(painter = painterResource(R.drawable.ic_error_outline), error = true)
             Spacer(Modifier.height(16.dp))
             Text(
                 status.message,
@@ -126,7 +121,7 @@ fun StatusCenter(
                     shape = RoundedCornerShape(18.dp),
                 ) {
                     Icon(
-                        Icons.Filled.CloudDownload,
+                        painter = painterResource(R.drawable.ic_cloud_download),
                         contentDescription = null,
                         modifier = Modifier.size(18.dp)
                     )

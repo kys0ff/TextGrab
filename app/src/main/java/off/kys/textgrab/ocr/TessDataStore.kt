@@ -32,6 +32,11 @@ object TessDataStore {
         return file.exists() && file.length() > 0
     }
 
+    fun getInstalledSize(context: Context, tessCode: String, version: TesseractVersion): Long {
+        val file = File(getTessDataPath(context, version), "tessdata/$tessCode.traineddata")
+        return if (file.exists()) file.length() else 0L
+    }
+
     fun hasAnyInstalled(context: Context, tessCode: String): Boolean {
         return TesseractVersion.entries.any { isInstalled(context, it, tessCode) }
     }

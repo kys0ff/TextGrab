@@ -197,9 +197,7 @@ class OcrPackageRepository(
      * The actual remote sizes are refreshed automatically in the
      * background by the repository.
      */
-    fun getAvailablePackages(): List<OcrPackage> {
-        return packages.value
-    }
+    fun getAvailablePackages(): List<OcrPackage> = packages.value
 
     /**
      * Manually trigger a background model-size refresh.
@@ -246,10 +244,12 @@ class OcrPackageRepository(
         val now = System.currentTimeMillis()
 
         for (model in allModels) {
-            if (!force && !needsRefresh(model.key, now)) {
+            // Skip remote refresh if model is already installed locally
+            if (!force && isInstalled(model.tessCode, model.version))
                 continue
-            }
-// ...
+
+            if (!force && !needsRefresh(model.key, now))
+                continue
 
             val size = fetchRemoteFileSize(model.url)
 
@@ -522,13 +522,9 @@ class OcrPackageRepository(
         defaults: Map<String, TesseractVersion>
     ): OcrPackage {
 
-        fun size(version: TesseractVersion): Long {
-            return sizes["${code}_${version.name}"] ?: 0L
-        }
+        fun size(version: TesseractVersion): Long = sizes["${code}_${version.name}"] ?: 0L
 
-        fun download(version: TesseractVersion): DownloadState {
-            return downloads["${code}_$version"] ?: DownloadState.NotDownloaded
-        }
+        fun download(version: TesseractVersion): DownloadState = downloads["${code}_$version"] ?: DownloadState.NotDownloaded
 
         val recommended = getRecommendedVersion()
         val defaultVersion = defaults[code] ?: recommended
@@ -557,51 +553,37 @@ class OcrPackageRepository(
 
     private fun getRecommendedVersion(): TesseractVersion {
         val activityManager =
-            context.getSystemService(
-                Context.ACTIVITY_SERVICE
-            ) as ActivityManager
+            context.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
 
-        val memoryInfo =
-            ActivityManager.MemoryInfo()
+        val memoryInfo = ActivityManager.MemoryInfo()
 
         activityManager.getMemoryInfo(memoryInfo)
 
-        val totalRamGb =
-            memoryInfo.totalMem /
-                    (1024f * 1024f * 1024f)
+        val totalRamGb = memoryInfo.totalMem / (1024f * 1024f * 1024f)
 
-        val cores =
-            Runtime.getRuntime().availableProcessors()
+        val cores = Runtime.getRuntime().availableProcessors()
 
-        val isLowEnd =
-            activityManager.isLowRamDevice
+        val isLowEnd = activityManager.isLowRamDevice
 
         return when {
-            !isLowEnd &&
-                    totalRamGb >= 6 &&
-                    cores >= 8 ->
+            !isLowEnd && totalRamGb >= 6 && cores >= 8 ->
                 TesseractVersion.BEST
 
-            !isLowEnd &&
-                    totalRamGb >= 3 &&
-                    cores >= 4 ->
-                TesseractVersion.STANDARD
+            !isLowEnd && totalRamGb >= 3 && cores >= 4
+                        -> TesseractVersion.STANDARD
 
-            else ->
-                TesseractVersion.FAST
+            else -> TesseractVersion.FAST
         }
     }
 
     fun isInstalled(
         tessCode: String,
         version: TesseractVersion
-    ): Boolean {
-        return TessDataStore.isInstalled(
-            context,
-            tessCode,
-            version
-        )
-    }
+    ): Boolean = TessDataStore.isInstalled(
+        context,
+        tessCode,
+        version
+    )
 
     fun updateDownloadState(key: String, state: DownloadState) {
         val updated = _downloadStates.value.toMutableMap()
@@ -610,43 +592,42 @@ class OcrPackageRepository(
     }
 
     fun refreshInstallationStates() {
-        val states =
-            mutableMapOf<String, DownloadState>()
+        val states = mutableMapOf<String, DownloadState>()
+        val sizes = modelSizes.value.toMutableMap()
+        var sizesChanged = false
 
         getAvailablePackages().forEach { pkg ->
             pkg.versions.forEach { version ->
+                val key = "${pkg.tessCode}_${version.version}"
 
-                val key =
-                    "${pkg.tessCode}_${version.version}"
-
-                states[key] = when {
-                    isInstalled(
-                        pkg.tessCode,
-                        version.version
-                    ) -> {
-                        DownloadState.Downloaded
+                if (isInstalled(pkg.tessCode, version.version)) {
+                    states[key] = DownloadState.Downloaded
+                    
+                    val localSize = TessDataStore.getInstalledSize(
+                        context, pkg.tessCode, version.version
+                    )
+                    
+                    if (localSize > 0 && sizes[key] != localSize) {
+                        sizes[key] = localSize
+                        sizesChanged = true
                     }
-
-                    _downloadStates.value[key] is
-                            DownloadState.Downloading -> {
-                        _downloadStates.value[key]!!
-                    }
-
-                    else -> {
-                        DownloadState.NotDownloaded
-                    }
+                } else if (_downloadStates.value[key] is DownloadState.Downloading) {
+                    states[key] = _downloadStates.value[key]!!
+                } else {
+                    states[key] = DownloadState.NotDownloaded
                 }
             }
         }
 
         _downloadStates.value = states
+        if (sizesChanged) {
+            modelSizes.value = sizes
+        }
     }
 
     /**
      * Call this if the repository has a lifecycle independent of
      * the rest of the application, and you want to release its scope.
      */
-    fun close() {
-        scope.coroutineContext.cancel()
-    }
+    fun close() = scope.coroutineContext.cancel()
 }
