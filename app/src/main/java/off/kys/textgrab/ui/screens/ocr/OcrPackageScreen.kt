@@ -3,7 +3,6 @@ package off.kys.textgrab.ui.screens.ocr
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
@@ -20,9 +19,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -51,17 +52,19 @@ import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
-import cafe.adriel.voyager.navigator.Navigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import off.kys.textgrab.R
+import off.kys.textgrab.core.model.OcrLanguage
 import off.kys.textgrab.ocr.model.DownloadState
 import off.kys.textgrab.ocr.model.OcrPackage
 import off.kys.textgrab.ocr.model.OcrVersion
 import off.kys.textgrab.ocr.model.TesseractVersion
+import off.kys.textgrab.ui.theme.TextGrabTheme
 import org.koin.androidx.compose.koinViewModel
 
 class OcrPackageScreen : Screen {
@@ -75,7 +78,7 @@ class OcrPackageScreen : Screen {
         OcrPackageContent(
             state = state,
             onEvent = viewModel::onEvent,
-            navigator = navigator
+            onPop = { navigator.pop() }
         )
     }
 }
@@ -85,25 +88,21 @@ class OcrPackageScreen : Screen {
 private fun OcrPackageContent(
     state: OcrPackageState,
     onEvent: (OcrPackageEvent) -> Unit,
-    navigator: Navigator
+    onPop: () -> Unit
 ) {
     Scaffold(
         containerColor = MaterialTheme.colorScheme.surface,
         topBar = {
             TopAppBar(
                 title = {
-                    Column {
-                        Text(
-                            text = stringResource(R.string.ocr_package_label_title),
-                            style = MaterialTheme.typography.titleLarge,
-                            fontWeight = FontWeight.SemiBold
-                        )
-                    }
+                    Text(
+                        text = stringResource(R.string.ocr_package_label_title),
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold
+                    )
                 },
                 navigationIcon = {
-                    IconButton(
-                        onClick = { navigator.pop() }
-                    ) {
+                    IconButton(onClick = onPop) {
                         Icon(
                             painter = painterResource(R.drawable.ic_arrow_back),
                             contentDescription = null
@@ -111,11 +110,7 @@ private fun OcrPackageContent(
                     }
                 },
                 actions = {
-                    IconButton(
-                        onClick = {
-                            onEvent(OcrPackageEvent.Refresh)
-                        }
-                    ) {
+                    IconButton(onClick = { onEvent(OcrPackageEvent.Refresh) }) {
                         Icon(
                             painter = painterResource(R.drawable.ic_refresh),
                             contentDescription = stringResource(R.string.ocr_package_action_button_refresh)
@@ -124,7 +119,7 @@ private fun OcrPackageContent(
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.surface,
-                    scrolledContainerColor = MaterialTheme.colorScheme.surface
+                    scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainer
                 )
             )
         }
@@ -135,18 +130,21 @@ private fun OcrPackageContent(
                 contentPadding = PaddingValues(
                     start = 16.dp,
                     end = 16.dp,
-                    top = innerPadding.calculateTopPadding() + 8.dp,
-                    bottom = innerPadding.calculateBottomPadding() + 32.dp
+                    top = innerPadding.calculateTopPadding(),
+                    bottom = innerPadding.calculateBottomPadding() + 24.dp
                 ),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                item { OcrIntro() }
+                item {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    OcrIntroCompact()
+                }
 
                 items(
                     items = state.packages,
                     key = { it.displayName }
                 ) { pkg ->
-                    OcrPackageCard(
+                    OcrPackageCardModern(
                         pkg = pkg,
                         onEvent = onEvent
                     )
@@ -154,33 +152,17 @@ private fun OcrPackageContent(
             }
 
             if (state.deleteConfirmation != null) {
-                val conf = state.deleteConfirmation
-                AlertDialog(
-                    onDismissRequest = { onEvent(OcrPackageEvent.DismissDeleteDialog) },
-                    confirmButton = {
-                        Button(
-                            onClick = { onEvent(OcrPackageEvent.ConfirmDelete(conf.pkg, conf.version)) }
-                        ) {
-                            Text(stringResource(R.string.ocr_package_action_button_delete))
-                        }
-                    },
-                    dismissButton = {
-                        TextButton(
-                            onClick = { onEvent(OcrPackageEvent.DismissDeleteDialog) }
-                        ) {
-                            Text(stringResource(R.string.common_action_button_cancel))
-                        }
-                    },
-                    title = { Text(stringResource(R.string.ocr_package_delete_confirm_title)) },
-                    text = {
-                        Text(
-                            stringResource(
-                                R.string.ocr_package_delete_confirm_desc,
-                                conf.pkg.displayName,
-                                versionName(conf.version)
+                DeleteConfirmationDialog(
+                    conf = state.deleteConfirmation,
+                    onConfirm = { pkg, version ->
+                        onEvent(
+                            OcrPackageEvent.ConfirmDelete(
+                                pkg,
+                                version
                             )
                         )
-                    }
+                    },
+                    onDismiss = { onEvent(OcrPackageEvent.DismissDeleteDialog) }
                 )
             }
         }
@@ -188,120 +170,58 @@ private fun OcrPackageContent(
 }
 
 @Composable
-private fun OcrIntro() {
-    Column(
-        modifier = Modifier.padding(
-            horizontal = 4.dp,
-            vertical = 4.dp
-        )
+private fun OcrIntroCompact() {
+    Surface(
+        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
+        shape = RoundedCornerShape(16.dp),
+        modifier = Modifier.fillMaxWidth()
     ) {
         Text(
             text = stringResource(R.string.ocr_package_label_desc),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
-            lineHeight = MaterialTheme.typography.bodyMedium.lineHeight
+            modifier = Modifier.padding(16.dp),
+            lineHeight = 20.sp
         )
     }
 }
 
-/**
- * FAST      -> secondary
- * STANDARD  -> primary
- * BEST      -> tertiary
- */
-private data class VersionStyle(
-    val painter: Painter,
-    val accent: Color
-)
-
 @Composable
-private fun versionStyle(
-    version: TesseractVersion
-): VersionStyle {
-    val colors = MaterialTheme.colorScheme
-
-    return when (version) {
-        TesseractVersion.FAST -> {
-            VersionStyle(
-                painter = painterResource(R.drawable.ic_bolt),
-                accent = colors.secondary
-            )
-        }
-
-        TesseractVersion.STANDARD -> {
-            VersionStyle(
-                painter = painterResource(R.drawable.ic_scale),
-                accent = colors.primary
-            )
-        }
-
-        TesseractVersion.BEST -> {
-            VersionStyle(
-                painter = painterResource(R.drawable.ic_diamond),
-                accent = colors.tertiary
-            )
-        }
-    }
-}
-
-@Composable
-private fun OcrPackageCard(
+private fun OcrPackageCardModern(
     pkg: OcrPackage,
     onEvent: (OcrPackageEvent) -> Unit
 ) {
-    val anyDownloaded = pkg.versions.any {
-        it.downloadState is DownloadState.Downloaded
-    }
+    val anyDownloaded = pkg.versions.any { it.downloadState is DownloadState.Downloaded }
 
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = MaterialTheme.shapes.extraLarge,
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainer
-        ),
-        elevation = CardDefaults.cardElevation(
-            defaultElevation = 0.dp
-        )
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
-        Column(modifier = Modifier.padding(8.dp)) {
+        Column(modifier = Modifier.padding(12.dp)) {
             PackageHeader(
                 packageName = pkg.displayName,
                 anyDownloaded = anyDownloaded
             )
 
-            Spacer(modifier = Modifier.height(4.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
-            pkg.versions.forEach { version ->
-                OcrVersionRow(
-                    version = version,
-                    onDownload = {
-                        onEvent(
-                            OcrPackageEvent.Download(
-                                pkg,
-                                version.version,
-                                version.url
-                            )
-                        )
-                    },
-                    onDelete = {
-                        onEvent(
-                            OcrPackageEvent.Delete(
-                                pkg,
-                                version.version
-                            )
-                        )
-                    },
-                    onSetDefault = {
-                        onEvent(
-                            OcrPackageEvent.SetDefault(
-                                pkg,
-                                version.version
-                            )
-                        )
-                    }
-                )
-
-                Spacer(modifier = Modifier.height(6.dp))
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                pkg.versions.forEach { version ->
+                    OcrVersionRowModern(
+                        version = version,
+                        onDownload = {
+                            onEvent(OcrPackageEvent.Download(pkg, version.version, version.url))
+                        },
+                        onDelete = {
+                            onEvent(OcrPackageEvent.Delete(pkg, version.version))
+                        },
+                        onSetDefault = {
+                            onEvent(OcrPackageEvent.SetDefault(pkg, version.version))
+                        }
+                    )
+                }
             }
         }
     }
@@ -315,357 +235,263 @@ private fun PackageHeader(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(
-                horizontal = 12.dp,
-                vertical = 12.dp
-            ),
+            .padding(horizontal = 4.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-
-        Column(
-            modifier = Modifier.weight(1f)
-        ) {
-            Text(
-                text = packageName,
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-
-            Spacer(modifier = Modifier.height(2.dp))
-
-            Text(
-                text = stringResource(R.string.ocr_package_label_title),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
+        Text(
+            modifier = Modifier.weight(1f),
+            text = packageName,
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onSurface
+        )
 
         AnimatedVisibility(
             visible = anyDownloaded,
             enter = scaleIn() + fadeIn(),
             exit = scaleOut() + fadeOut()
         ) {
-            Surface(
-                shape = CircleShape,
-                color = MaterialTheme.colorScheme.primaryContainer
-            ) {
-                Box(
-                    modifier = Modifier.size(36.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        painter = painterResource(R.drawable.ic_check_circle),
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                        modifier = Modifier.size(20.dp)
-                    )
-                }
-            }
+            Icon(
+                painter = painterResource(R.drawable.ic_check_circle),
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(24.dp)
+            )
         }
     }
 }
 
 @Composable
-private fun OcrVersionRow(
+private fun OcrVersionRowModern(
     version: OcrVersion,
     onDownload: () -> Unit,
     onDelete: () -> Unit,
     onSetDefault: () -> Unit
 ) {
     val style = versionStyle(version.version)
-
     val state = version.downloadState
     val isDefault = version.isDefault
     val isDownloaded = state is DownloadState.Downloaded
-    val isDownloading = state is DownloadState.Downloading
 
-    val rowContainerColor by animateColorAsState(
-        targetValue = when {
-            isDefault ->
-                MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.55f)
-
-            else ->
-                MaterialTheme.colorScheme.surfaceContainerLow
-        },
-        animationSpec = tween(180),
-        label = "versionRowContainer"
+    val backgroundColor by animateColorAsState(
+        targetValue = if (isDefault) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.7f)
+        else MaterialTheme.colorScheme.surfaceContainerHigh,
+        label = "versionBg"
     )
 
     Surface(
         modifier = Modifier.fillMaxWidth(),
-        shape = MaterialTheme.shapes.extraLarge,
-        color = rowContainerColor,
-        tonalElevation = if (isDefault) 1.dp else 0.dp,
+        shape = RoundedCornerShape(16.dp),
+        color = backgroundColor,
         onClick = if (isDownloaded) onSetDefault else ({})
     ) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(
-                    start = 12.dp,
-                    top = 10.dp,
-                    bottom = 10.dp,
-                    end = 8.dp
-                ),
+            modifier = Modifier.padding(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
+            VersionIconModern(style = style, selected = isDefault)
 
-            VersionIcon(
-                style = style,
-                selected = isDefault
-            )
+            Spacer(modifier = Modifier.width(12.dp))
 
-            Spacer(modifier = Modifier.size(12.dp))
-
-            Column(
-                modifier = Modifier.weight(1f)
-            ) {
-
-                Row(
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
                         text = versionName(version.version),
                         style = MaterialTheme.typography.bodyLarge,
-                        fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.onSurface
+                        fontWeight = FontWeight.Bold,
+                        color = if (isDefault) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface
                     )
-
                     if (version.isRecommended) {
-                        Spacer(modifier = Modifier.size(8.dp))
-
-                        RecommendedLabel()
+                        Spacer(modifier = Modifier.width(8.dp))
+                        RecommendedPill()
                     }
                 }
-
-                Spacer(modifier = Modifier.height(3.dp))
-
-                Row(
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = "${version.sizeBytes / 1_000_000} MB",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-
-                    if (isDefault) {
-                        Spacer(modifier = Modifier.size(6.dp))
-
-                        Text(
-                            text = "•",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-
-                        Spacer(modifier = Modifier.size(6.dp))
-
-                        Text(
-                            text = stringResource(R.string.ocr_package_action_button_set_default),
-                            style = MaterialTheme.typography.bodySmall,
-                            fontWeight = FontWeight.Medium,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                    }
-                }
+                Text(
+                    text = "${version.sizeBytes / 1_000_000} MB",
+                    style = MaterialTheme.typography.labelLarge,
+                    color = if (isDefault) MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
+                    else MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
 
-            Spacer(modifier = Modifier.size(8.dp))
+            Spacer(modifier = Modifier.width(8.dp))
 
-            when {
-                isDownloaded -> {
-                    DownloadedActions(
-                        isDefault = isDefault,
-                        onSetDefault = onSetDefault,
-                        onDelete = onDelete
-                    )
-                }
-
-                isDownloading -> {
-                    DownloadProgressIndicator(
-                        progress = state.progress,
-                        accent = style.accent
-                    )
-                }
-
-                else -> {
-                    DownloadButton(onClick = onDownload)
-                }
-            }
+            VersionActionsModern(
+                state = state,
+                isDefault = isDefault,
+                accentColor = style.accent,
+                onDownload = onDownload,
+                onDelete = onDelete,
+                onSetDefault = onSetDefault
+            )
         }
     }
 }
 
 @Composable
-private fun VersionIcon(
-    style: VersionStyle,
-    selected: Boolean
-) {
-    val backgroundColor =
-        if (selected) {
-            MaterialTheme.colorScheme.primary
-        } else {
-            MaterialTheme.colorScheme.surfaceContainerHighest
-        }
+private fun RecommendedPill() {
+    Surface(
+        shape = CircleShape,
+        color = MaterialTheme.colorScheme.tertiaryContainer,
+        modifier = Modifier.height(20.dp)
+    ) {
+        Text(
+            text = stringResource(R.string.ocr_package_label_recommended),
+            modifier = Modifier.padding(horizontal = 8.dp),
+            style = MaterialTheme.typography.labelSmall,
+            fontWeight = FontWeight.Black,
+            color = MaterialTheme.colorScheme.onTertiaryContainer
+        )
+    }
+}
 
-    val iconTint =
-        if (selected) {
-            MaterialTheme.colorScheme.onPrimary
-        } else {
-            style.accent
-        }
-
+@Composable
+private fun VersionIconModern(style: VersionStyle, selected: Boolean) {
     Box(
         modifier = Modifier
-            .size(48.dp)
-            .clip(MaterialTheme.shapes.large)
-            .background(backgroundColor),
+            .size(40.dp)
+            .clip(RoundedCornerShape(12.dp))
+            .background(if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant),
         contentAlignment = Alignment.Center
     ) {
         Icon(
             painter = style.painter,
             contentDescription = null,
-            tint = iconTint,
-            modifier = Modifier.size(21.dp)
+            tint = if (selected) MaterialTheme.colorScheme.onPrimary else style.accent,
+            modifier = Modifier.size(20.dp)
         )
     }
 }
 
 @Composable
-private fun RecommendedLabel() {
-    Surface(
-        shape = MaterialTheme.shapes.small,
-        color = MaterialTheme.colorScheme.secondaryContainer
-    ) {
-        Text(
-            text = stringResource(R.string.ocr_package_label_recommended),
-            modifier = Modifier.padding(
-                horizontal = 7.dp,
-                vertical = 3.dp
-            ),
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-            style = MaterialTheme.typography.labelSmall,
-            fontWeight = FontWeight.SemiBold,
-            color = MaterialTheme.colorScheme.onSecondaryContainer
-        )
-    }
-}
-
-@Composable
-private fun DownloadedActions(
+private fun VersionActionsModern(
+    state: DownloadState,
     isDefault: Boolean,
-    onSetDefault: () -> Unit,
-    onDelete: () -> Unit
+    accentColor: Color,
+    onDownload: () -> Unit,
+    onDelete: () -> Unit,
+    onSetDefault: () -> Unit
 ) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-
-        /*
-         * Material 3 selected-state action.
-         *
-         * Instead of RadioButton/checkbox styling, the selected
-         * model gets a filled primary action containing a check.
-         */
-        if (isDefault) {
-            FilledIconButton(
-                onClick = {},
-                modifier = Modifier.size(40.dp)
-            ) {
-                Icon(
-                    painter = painterResource(R.drawable.ic_check),
-                    contentDescription = stringResource(
-                        R.string.ocr_package_action_button_set_default
-                    ),
-                    modifier = Modifier.size(20.dp)
-                )
-            }
-        } else {
-            FilledTonalIconButton(
-                onClick = onSetDefault,
-                modifier = Modifier.size(40.dp)
-            ) {
-                Icon(
-                    painter = painterResource(R.drawable.ic_check),
-                    contentDescription = stringResource(
-                        R.string.ocr_package_action_button_set_default
-                    ),
-                    modifier = Modifier.size(20.dp)
-                )
+    when (state) {
+        is DownloadState.Downloaded -> {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                if (isDefault) {
+                    Icon(
+                        painter = painterResource(R.drawable.ic_check),
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                        modifier = Modifier
+                            .size(24.dp)
+                            .padding(4.dp)
+                    )
+                } else {
+                    FilledTonalIconButton(onClick = onSetDefault, modifier = Modifier.size(36.dp)) {
+                        Icon(
+                            painter = painterResource(R.drawable.ic_check),
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp)
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.width(4.dp))
+                IconButton(onClick = onDelete, modifier = Modifier.size(36.dp)) {
+                    Icon(
+                        painter = painterResource(R.drawable.ic_delete_outline),
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.error,
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
             }
         }
 
-        Spacer(modifier = Modifier.size(4.dp))
+        is DownloadState.Downloading -> {
+            DownloadProgressCompact(progress = state.progress, accent = accentColor)
+        }
 
-        /*
-         * Error-tonal delete action instead of a raw red icon.
-         *
-         * This feels much closer to Material 3 destructive actions.
-         */
-        FilledTonalIconButton(
-            onClick = onDelete,
-            modifier = Modifier.size(40.dp)
-        ) {
-            Icon(
-                painter = painterResource(R.drawable.ic_delete_outline),
-                contentDescription = stringResource(
-                    R.string.ocr_package_action_button_delete
-                ),
-                tint = MaterialTheme.colorScheme.error
-            )
+        else -> {
+            FilledIconButton(onClick = onDownload, modifier = Modifier.size(36.dp)) {
+                Icon(
+                    painter = painterResource(R.drawable.ic_cloud_download),
+                    contentDescription = null,
+                    modifier = Modifier.size(18.dp)
+                )
+            }
         }
     }
 }
 
 @Composable
-private fun DownloadProgressIndicator(
-    progress: Float,
-    accent: Color
-) {
+private fun DownloadProgressCompact(progress: Float, accent: Color) {
     val animatedProgress by animateFloatAsState(
         targetValue = progress.coerceIn(0f, 1f),
-        animationSpec = tween(durationMillis = 180),
-        label = "downloadProgress"
+        label = "dlProg"
     )
-
-    val percentage =
-        (progress.coerceIn(0f, 1f) * 100).toInt()
-
-    Box(
-        modifier = Modifier.size(44.dp),
-        contentAlignment = Alignment.Center
-    ) {
+    Box(contentAlignment = Alignment.Center, modifier = Modifier.size(36.dp)) {
         CircularProgressIndicator(
             progress = { animatedProgress },
-            modifier = Modifier.size(38.dp),
+            modifier = Modifier.size(32.dp),
             strokeWidth = 3.dp,
             color = accent,
-            trackColor = MaterialTheme.colorScheme.surfaceContainerHighest
+            trackColor = MaterialTheme.colorScheme.surfaceVariant
         )
-
         Text(
-            text = "$percentage",
+            text = "${(progress * 100).toInt()}",
             style = MaterialTheme.typography.labelSmall,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onSurface
+            fontWeight = FontWeight.Bold
         )
     }
 }
 
 @Composable
-private fun DownloadButton(onClick: () -> Unit) {
-    FilledIconButton(
-        onClick = onClick,
-        modifier = Modifier.size(44.dp)
-    ) {
-        Icon(
-            painter = painterResource(R.drawable.ic_cloud_download),
-            contentDescription = stringResource(
-                R.string.ocr_package_action_button_download
-            ),
-            modifier = Modifier.size(21.dp)
+private fun DeleteConfirmationDialog(
+    conf: DeleteConfirmation,
+    onConfirm: (OcrPackage, TesseractVersion) -> Unit,
+    onDismiss: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        confirmButton = {
+            Button(onClick = { onConfirm(conf.pkg, conf.version) }) {
+                Text(stringResource(R.string.ocr_package_action_button_delete))
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.common_action_button_cancel))
+            }
+        },
+        title = { Text(stringResource(R.string.ocr_package_delete_confirm_title)) },
+        text = {
+            Text(
+                stringResource(
+                    R.string.ocr_package_delete_confirm_desc,
+                    conf.pkg.displayName,
+                    versionName(conf.version)
+                )
+            )
+        }
+    )
+}
+
+private data class VersionStyle(val painter: Painter, val accent: Color)
+
+@Composable
+private fun versionStyle(version: TesseractVersion): VersionStyle {
+    return when (version) {
+        TesseractVersion.FAST -> VersionStyle(
+            painterResource(R.drawable.ic_bolt),
+            MaterialTheme.colorScheme.secondary
+        )
+
+        TesseractVersion.STANDARD -> VersionStyle(
+            painterResource(R.drawable.ic_scale),
+            MaterialTheme.colorScheme.primary
+        )
+
+        TesseractVersion.BEST -> VersionStyle(
+            painterResource(R.drawable.ic_diamond),
+            MaterialTheme.colorScheme.tertiary
         )
     }
 }
@@ -675,4 +501,42 @@ private fun versionName(version: TesseractVersion): String = when (version) {
     TesseractVersion.FAST -> stringResource(R.string.ocr_package_label_version_fast)
     TesseractVersion.STANDARD -> stringResource(R.string.ocr_package_label_version_standard)
     TesseractVersion.BEST -> stringResource(R.string.ocr_package_label_version_best)
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun OcrPackageScreenPreview() {
+    TextGrabTheme {
+        OcrPackageContent(
+            state = OcrPackageState(
+                packages = listOf(
+                    OcrPackage(
+                        language = OcrLanguage.LATIN,
+                        displayName = "English",
+                        tessCode = "eng",
+                        versions = listOf(
+                            OcrVersion(
+                                TesseractVersion.FAST,
+                                "url",
+                                10_000_000L,
+                                true,
+                                DownloadState.Downloaded,
+                                true
+                            ),
+                            OcrVersion(
+                                TesseractVersion.STANDARD,
+                                "url",
+                                20_000_000L,
+                                false,
+                                DownloadState.Downloading(0.45f),
+                                false
+                            )
+                        )
+                    )
+                )
+            ),
+            onEvent = {},
+            onPop = {}
+        )
+    }
 }

@@ -12,6 +12,7 @@ import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.animation.shrinkOut
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -23,8 +24,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -32,7 +35,6 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
-import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
@@ -53,6 +55,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -60,11 +64,11 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
-import cafe.adriel.voyager.navigator.Navigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import kotlinx.coroutines.delay
 import off.kys.textgrab.R
@@ -74,6 +78,7 @@ import off.kys.textgrab.core.model.OverlayCommand
 import off.kys.textgrab.core.permission.PermissionManager
 import off.kys.textgrab.overlay.OverlayBus
 import off.kys.textgrab.ui.screens.ocr.OcrPackageScreen
+import off.kys.textgrab.ui.theme.TextGrabTheme
 import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
 import java.text.SimpleDateFormat
@@ -94,8 +99,10 @@ class MainScreen : Screen {
         MainScreenContent(
             state = state,
             onEvent = viewModel::onEvent,
-            permissionManager = permissionManager,
-            navigator = navigator
+            onOpenAccessibility = { permissionManager.openAccessibilitySettings() },
+            onOpenOverlay = { permissionManager.openOverlaySettings() },
+            onOpenNotifications = { permissionManager.openNotificationsSettings() },
+            onNavigateToOcr = { navigator.push(OcrPackageScreen()) }
         )
     }
 }
@@ -105,8 +112,10 @@ class MainScreen : Screen {
 private fun MainScreenContent(
     state: MainState,
     onEvent: (MainEvent) -> Unit,
-    permissionManager: PermissionManager,
-    navigator: Navigator
+    onOpenAccessibility: () -> Unit,
+    onOpenOverlay: () -> Unit,
+    onOpenNotifications: () -> Unit,
+    onNavigateToOcr: () -> Unit,
 ) {
     LaunchedEffect(Unit) {
         onEvent(MainEvent.RefreshPermissions)
@@ -117,11 +126,8 @@ private fun MainScreenContent(
         onPauseOrDispose {}
     }
 
-    val scrollBehavior =
-        TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
-
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     val ready = state.permissions.accessibility && state.permissions.overlay
-
     val grantedPermissions = listOf(
         state.permissions.accessibility,
         state.permissions.overlay,
@@ -136,17 +142,16 @@ private fun MainScreenContent(
         topBar = {
             MediumTopAppBar(
                 title = {
-                    Column {
-                        Text(
-                            text = stringResource(R.string.common_app_label_name),
-                            fontWeight = FontWeight.SemiBold
-                        )
-                    }
+                    Text(
+                        text = stringResource(R.string.common_app_label_name),
+                        fontWeight = FontWeight.Bold,
+                        style = MaterialTheme.typography.headlineMedium
+                    )
                 },
                 scrollBehavior = scrollBehavior,
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.surface,
-                    scrolledContainerColor = MaterialTheme.colorScheme.surface,
+                    scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainer,
                 )
             )
         },
@@ -160,6 +165,7 @@ private fun MainScreenContent(
                     onClick = {
                         OverlayBus.send(OverlayCommand.Trigger(ExtractionMode.ACCESSIBILITY))
                     },
+                    shape = CircleShape,
                     icon = {
                         Icon(
                             painter = painterResource(R.drawable.ic_document_scanner),
@@ -169,11 +175,11 @@ private fun MainScreenContent(
                     text = {
                         Text(
                             text = stringResource(R.string.main_action_button_scan),
-                            fontWeight = FontWeight.SemiBold
+                            fontWeight = FontWeight.Bold
                         )
                     },
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary
                 )
             }
         }
@@ -183,482 +189,329 @@ private fun MainScreenContent(
             contentPadding = PaddingValues(
                 start = 16.dp,
                 end = 16.dp,
-                top = innerPadding.calculateTopPadding() + 8.dp,
-                bottom = innerPadding.calculateBottomPadding() + 96.dp
+                top = innerPadding.calculateTopPadding(),
+                bottom = innerPadding.calculateBottomPadding() + 88.dp
             ),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             item {
-                ReadinessSummary(
+                Spacer(modifier = Modifier.height(8.dp))
+                ReadinessHero(
                     granted = grantedPermissions,
                     ready = ready
                 )
             }
 
-            item { SetupIntro() }
+            item {
+                SectionHeader(title = stringResource(R.string.permission_accessibility_label_title))
+            }
 
             item {
-                PermissionSection(
-                    accessibilityGranted = state.permissions.accessibility,
-                    overlayGranted = state.permissions.overlay,
-                    notificationsGranted = state.permissions.notifications,
-                    onAccessibility = permissionManager::openAccessibilitySettings,
-                    onOverlay = permissionManager::openOverlaySettings,
-                    onNotifications = permissionManager::openNotificationsSettings,
-                    onOcr = { navigator.push(OcrPackageScreen()) }
+                PermissionGrid(
+                    state = state,
+                    onOpenAccessibility = onOpenAccessibility,
+                    onOpenOverlay = onOpenOverlay,
+                    onOpenNotifications = onOpenNotifications,
+                    onOcr = onNavigateToOcr
                 )
             }
 
-            item { TileSetupCard() }
-
             item {
-                HistoryHeader(
-                    hasHistory = state.history.isNotEmpty(),
-                    onClear = {
-                        onEvent(
-                            MainEvent.ClearHistory
-                        )
-                    }
-                )
+                TileSetupCompact()
             }
 
-            if (state.history.isEmpty()) {
-                item { EmptyHistory() }
-            } else {
-                item {
-                    HistoryCard(
-                        history = state.history,
-                        onCopy = {
-                            onEvent(MainEvent.OnHistoryCopy(it))
-                        }
-                    )
-                }
+            item {
+                HistorySection(
+                    history = state.history,
+                    onClear = { onEvent(MainEvent.ClearHistory) },
+                    onCopy = { onEvent(MainEvent.OnHistoryCopy(it)) }
+                )
             }
         }
 
         if (state.showClearHistoryConfirmation) {
-            AlertDialog(
-                onDismissRequest = { onEvent(MainEvent.DismissClearHistoryDialog) },
-                confirmButton = {
-                    Button(
-                        onClick = { onEvent(MainEvent.ConfirmClearHistory) }
-                    ) {
-                        Text(stringResource(R.string.history_action_button_clear))
-                    }
-                },
-                dismissButton = {
-                    TextButton(
-                        onClick = { onEvent(MainEvent.DismissClearHistoryDialog) }
-                    ) {
-                        Text(stringResource(R.string.common_action_button_cancel))
-                    }
-                },
-                title = { Text(stringResource(R.string.history_clear_confirm_title)) },
-                text = { Text(stringResource(R.string.history_clear_confirm_desc)) }
+            ClearHistoryDialog(
+                onConfirm = { onEvent(MainEvent.ConfirmClearHistory) },
+                onDismiss = { onEvent(MainEvent.DismissClearHistoryDialog) }
             )
         }
     }
 }
 
 @Composable
-private fun SetupIntro() {
-    Text(
-        text = stringResource(R.string.main_label_setup_intro),
-        modifier = Modifier.padding(horizontal = 4.dp),
-        style = MaterialTheme.typography.bodyMedium,
-        color = MaterialTheme.colorScheme.onSurfaceVariant
-    )
-}
-
-@Composable
-private fun ReadinessSummary(
+private fun ReadinessHero(
     granted: Int,
     total: Int = 3,
     ready: Boolean
 ) {
     val progress by animateFloatAsState(
-        targetValue = if (total == 0) {
-            0f
-        } else {
-            granted.toFloat() / total
-        },
-        animationSpec = tween(450),
+        targetValue = if (total == 0) 0f else granted.toFloat() / total,
+        animationSpec = tween(600),
         label = "readinessProgress"
     )
 
-    val containerColor by animateColorAsState(
-        targetValue =
-            if (ready) {
-                MaterialTheme.colorScheme.primaryContainer
-            } else {
+    val gradient = if (ready) {
+        Brush.horizontalGradient(
+            colors = listOf(
+                MaterialTheme.colorScheme.primary,
+                MaterialTheme.colorScheme.tertiary
+            )
+        )
+    } else {
+        Brush.horizontalGradient(
+            colors = listOf(
+                MaterialTheme.colorScheme.surfaceContainerHigh,
                 MaterialTheme.colorScheme.surfaceContainer
-            },
-        animationSpec = tween(300),
-        label = "readinessContainer"
-    )
+            )
+        )
+    }
 
-    val contentColor =
-        if (ready) {
-            MaterialTheme.colorScheme.onPrimaryContainer
-        } else {
-            MaterialTheme.colorScheme.onSurface
-        }
+    val contentColor = if (ready) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface
 
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = MaterialTheme.shapes.extraLarge,
-        colors = CardDefaults.cardColors(containerColor = containerColor),
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.Transparent),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(
-                    horizontal = 20.dp,
-                    vertical = 20.dp
-                ),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Box(
-                modifier = Modifier.size(52.dp),
-                contentAlignment = Alignment.Center
+        Box(modifier = Modifier.background(gradient)) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(20.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                AnimatedContent(
-                    targetState = ready,
-                    transitionSpec = {
-                        (scaleIn() + fadeIn()) togetherWith
-                                (scaleOut() + fadeOut())
-                    },
-                    label = "readinessIcon"
-                ) { isReady ->
-                    if (isReady) {
-                        Surface(
-                            modifier = Modifier.size(52.dp),
-                            shape = CircleShape,
-                            color = MaterialTheme.colorScheme.primary
-                        ) {
-                            Box(
-                                modifier = Modifier.fillMaxSize(),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Icon(
-                                    painter = painterResource(R.drawable.ic_rocket_launch),
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.onPrimary,
-                                    modifier = Modifier.size(26.dp)
-                                )
-                            }
-                        }
+                StatusIcon(ready = ready, progress = progress, granted = granted, total = total)
 
-                    } else {
-                        Box(
-                            modifier = Modifier.size(48.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            CircularProgressIndicator(
-                                progress = { progress },
-                                modifier = Modifier.fillMaxSize(),
-                                strokeWidth = 4.dp,
-                                color = MaterialTheme.colorScheme.primary,
-                                trackColor = MaterialTheme.colorScheme.outlineVariant
-                                    .copy(alpha = 0.35f)
-                            )
+                Spacer(modifier = Modifier.width(16.dp))
 
-                            Text(
-                                text = "$granted/$total",
-                                style = MaterialTheme.typography.labelMedium,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onSurface
-                            )
-                        }
-                    }
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = stringResource(
+                            if (ready) R.string.main_label_readiness_ready_title
+                            else R.string.main_label_readiness_pending_title
+                        ),
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = contentColor
+                    )
+                    Text(
+                        text = stringResource(
+                            if (ready) R.string.main_label_readiness_ready_desc
+                            else R.string.main_label_readiness_pending_desc
+                        ),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = contentColor.copy(alpha = 0.8f)
+                    )
                 }
-            }
-
-            Spacer(modifier = Modifier.size(16.dp))
-
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = stringResource(
-                        if (ready) {
-                            R.string.main_label_readiness_ready_title
-                        } else {
-                            R.string.main_label_readiness_pending_title
-                        }
-                    ),
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold,
-                    color = contentColor
-                )
-
-                Spacer(modifier = Modifier.height(3.dp))
-
-                Text(
-                    text = stringResource(
-                        if (ready) {
-                            R.string.main_label_readiness_ready_desc
-                        } else {
-                            R.string.main_label_readiness_pending_desc
-                        }
-                    ),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = if (ready) {
-                        MaterialTheme.colorScheme.onPrimaryContainer
-                            .copy(alpha = 0.78f)
-                    } else {
-                        MaterialTheme.colorScheme.onSurfaceVariant
-                    }
-                )
             }
         }
     }
 }
 
 @Composable
-private fun PermissionSection(
-    accessibilityGranted: Boolean,
-    overlayGranted: Boolean,
-    notificationsGranted: Boolean,
-    onAccessibility: () -> Unit,
-    onOverlay: () -> Unit,
-    onNotifications: () -> Unit,
+private fun StatusIcon(
+    ready: Boolean,
+    progress: Float,
+    granted: Int,
+    total: Int
+) {
+    Box(
+        modifier = Modifier.size(56.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        AnimatedContent(
+            targetState = ready,
+            transitionSpec = { (scaleIn() + fadeIn()) togetherWith (scaleOut() + fadeOut()) },
+            label = "readinessIcon"
+        ) { isReady ->
+            if (isReady) {
+                Surface(
+                    modifier = Modifier.size(56.dp),
+                    shape = CircleShape,
+                    color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.2f)
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.ic_rocket_launch),
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onPrimary,
+                        modifier = Modifier.padding(14.dp)
+                    )
+                }
+            } else {
+                Box(contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator(
+                        progress = { progress },
+                        modifier = Modifier.size(56.dp),
+                        strokeWidth = 6.dp,
+                        color = MaterialTheme.colorScheme.primary,
+                        trackColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
+                    )
+                    Text(
+                        text = "$granted/$total",
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = FontWeight.Black,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun SectionHeader(title: String) {
+    Text(
+        text = title,
+        style = MaterialTheme.typography.labelLarge,
+        fontWeight = FontWeight.Bold,
+        color = MaterialTheme.colorScheme.primary,
+        modifier = Modifier.padding(horizontal = 4.dp, vertical = 4.dp)
+    )
+}
+
+@Composable
+private fun PermissionGrid(
+    state: MainState,
+    onOpenAccessibility: () -> Unit,
+    onOpenOverlay: () -> Unit,
+    onOpenNotifications: () -> Unit,
     onOcr: () -> Unit
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        PermissionCard(
-            painter = painterResource(R.drawable.ic_accessibility),
+        PermissionItem(
+            icon = painterResource(R.drawable.ic_accessibility),
             title = stringResource(R.string.permission_accessibility_label_title),
-            description = stringResource(R.string.permission_accessibility_label_desc),
-            granted = accessibilityGranted,
-            actionLabel = stringResource(R.string.common_action_button_settings),
-            onAction = onAccessibility
+            granted = state.permissions.accessibility,
+            onAction = onOpenAccessibility
         )
-
-        PermissionCard(
-            painter = painterResource(R.drawable.ic_layers),
+        PermissionItem(
+            icon = painterResource(R.drawable.ic_layers),
             title = stringResource(R.string.permission_overlay_label_title),
-            description = stringResource(R.string.permission_overlay_label_desc),
-            granted = overlayGranted,
-            actionLabel = stringResource(R.string.common_action_button_grant),
-            onAction = onOverlay
+            granted = state.permissions.overlay,
+            onAction = onOpenOverlay
         )
-
-        PermissionCard(
-            painter = painterResource(R.drawable.ic_notifications),
+        PermissionItem(
+            icon = painterResource(R.drawable.ic_notifications),
             title = stringResource(R.string.permission_notifications_label_title),
-            description = stringResource(R.string.permission_notifications_label_desc),
-            granted = notificationsGranted,
-            actionLabel = stringResource(R.string.permission_notifications_action_button_grant),
-            onAction = onNotifications
+            granted = state.permissions.notifications,
+            onAction = onOpenNotifications
         )
-
-        PermissionCard(
-            painter = painterResource(R.drawable.ic_image),
+        PermissionItem(
+            icon = painterResource(R.drawable.ic_image),
             title = stringResource(R.string.permission_projection_label_title),
-            description = stringResource(R.string.permission_projection_label_desc),
             granted = true,
-            actionLabel = stringResource(R.string.ocr_package_label_title),
             onAction = onOcr,
-            infoOnly = true
+            isInfo = true
         )
     }
 }
 
 @Composable
-private fun PermissionCard(
-    painter: Painter,
+private fun PermissionItem(
+    icon: Painter,
     title: String,
-    description: String,
     granted: Boolean,
-    actionLabel: String,
     onAction: () -> Unit,
-    infoOnly: Boolean = false
+    isInfo: Boolean = false
 ) {
     val containerColor by animateColorAsState(
-        targetValue =
-            when {
-                infoOnly -> MaterialTheme.colorScheme.surfaceContainer
-                granted -> MaterialTheme.colorScheme.surfaceContainerLow
-
-                else -> MaterialTheme.colorScheme.surfaceContainer
-            },
-        animationSpec = tween(180),
-        label = "permissionContainer"
+        targetValue = if (granted) MaterialTheme.colorScheme.surfaceContainerLow else MaterialTheme.colorScheme.surfaceContainerHigh,
+        label = "permContainer"
     )
 
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = MaterialTheme.shapes.large,
-        colors = CardDefaults.cardColors(containerColor = containerColor),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(
-                    start = 14.dp,
-                    top = 14.dp,
-                    bottom = 14.dp,
-                    end = 12.dp
-                ),
-
-            verticalAlignment =
-                Alignment.CenterVertically
-        ) {
-
-            PermissionIcon(
-                painter = painter,
-                granted = granted
-            )
-
-            Spacer(modifier = Modifier.size(14.dp))
-
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = FontWeight.SemiBold
-                )
-
-                Spacer(modifier = Modifier.height(3.dp))
-
-                Text(
-                    text = description,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-
-                if (!granted || infoOnly) {
-                    Spacer(modifier = Modifier.height(8.dp))
-                    FilledTonalButton(onClick = onAction) {
-                        Text(
-                            text = actionLabel,
-                            fontWeight = FontWeight.SemiBold
-                        )
-
-                        if (infoOnly) {
-                            Spacer(modifier = Modifier.size(6.dp))
-                            Icon(
-                                painter = painterResource(R.drawable.ic_open_in_new),
-                                contentDescription = null,
-                                modifier = Modifier.size(16.dp)
-                            )
-                        }
-                    }
-                }
-            }
-
-            if (granted && !infoOnly) {
-                Spacer(modifier = Modifier.size(8.dp))
-                Surface(
-                    modifier = Modifier.size(36.dp),
-                    shape = CircleShape,
-                    color = MaterialTheme.colorScheme.primaryContainer
-                ) {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            painter = painterResource(R.drawable.ic_check),
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                            modifier = Modifier.size(19.dp)
-                        )
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun PermissionIcon(
-    painter: Painter,
-    granted: Boolean
-) {
-    val backgroundColor = if (granted) {
-        MaterialTheme.colorScheme.primaryContainer
-    } else {
-        MaterialTheme.colorScheme.surfaceContainerHighest
-    }
-
-    val iconColor = if (granted) {
-        MaterialTheme.colorScheme.onPrimaryContainer
-    } else {
-        MaterialTheme.colorScheme.onSurfaceVariant
-    }
-
     Surface(
-        modifier = Modifier.size(48.dp),
-        shape = MaterialTheme.shapes.large,
-        color = backgroundColor
-    ) {
-        Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(
-                painter = painter,
-                contentDescription = null,
-                tint = iconColor,
-                modifier = Modifier.size(22.dp)
-            )
-        }
-    }
-}
-
-@Composable
-private fun TileSetupCard() {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = MaterialTheme.shapes.extraLarge,
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+        onClick = onAction,
+        shape = RoundedCornerShape(16.dp),
+        color = containerColor,
+        modifier = Modifier.fillMaxWidth()
     ) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(18.dp),
+            modifier = Modifier.padding(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Surface(
-                modifier = Modifier.size(48.dp),
-                shape = MaterialTheme.shapes.large,
-                color = MaterialTheme.colorScheme.onSecondaryContainer
-                    .copy(alpha = 0.10f)
+            Box(
+                modifier = Modifier
+                    .size(40.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(
+                        if (granted) MaterialTheme.colorScheme.primaryContainer
+                        else MaterialTheme.colorScheme.surfaceVariant
+                    ),
+                contentAlignment = Alignment.Center
             ) {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        painter = painterResource(R.drawable.ic_widgets),
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSecondaryContainer,
-                        modifier = Modifier.size(22.dp)
-                    )
-                }
+                Icon(
+                    painter = icon,
+                    contentDescription = null,
+                    tint = if (granted) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(20.dp)
+                )
             }
 
-            Spacer(modifier = Modifier.size(14.dp))
+            Spacer(modifier = Modifier.width(12.dp))
 
-            Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.SemiBold,
+                modifier = Modifier.weight(1f)
+            )
+
+            if (isInfo) {
+                Icon(
+                    painter = painterResource(R.drawable.ic_open_in_new),
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(18.dp)
+                )
+            } else if (granted) {
+                Icon(
+                    painter = painterResource(R.drawable.ic_check),
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(20.dp)
+                )
+            } else {
+                Text(
+                    text = stringResource(R.string.common_action_button_grant),
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.primary,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun TileSetupCompact() {
+    Surface(
+        shape = RoundedCornerShape(24.dp),
+        color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.7f),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Row(
+            modifier = Modifier.padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                painter = painterResource(R.drawable.ic_widgets),
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSecondaryContainer,
+                modifier = Modifier.size(24.dp)
+            )
+            Spacer(modifier = Modifier.width(12.dp))
+            Column {
                 Text(
                     text = stringResource(R.string.tile_setup_label_title),
                     style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.SemiBold,
+                    fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSecondaryContainer
                 )
-
-                Spacer(modifier = Modifier.height(3.dp))
-
                 Text(
                     text = stringResource(R.string.tile_setup_label_desc),
                     style = MaterialTheme.typography.bodySmall,
-                    color =
-                        MaterialTheme.colorScheme.onSecondaryContainer
-                            .copy(alpha = 0.78f)
+                    color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.8f)
                 )
             }
         }
@@ -666,126 +519,47 @@ private fun TileSetupCard() {
 }
 
 @Composable
-private fun HistoryHeader(
-    hasHistory: Boolean,
-    onClear: () -> Unit
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 4.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = stringResource(R.string.history_label_title),
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold
-            )
-
-            if (hasHistory) {
-                Text(
-                    text = stringResource(R.string.history_label_title),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-        }
-
-        AnimatedVisibility(
-            visible = hasHistory,
-            enter = fadeIn() + scaleIn(),
-            exit = fadeOut() + scaleOut()
-        ) {
-            TextButton(onClick = onClear) {
-                Text(
-                    text = stringResource(R.string.history_action_button_clear),
-                    fontWeight = FontWeight.SemiBold
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun HistoryCard(
+private fun HistorySection(
     history: List<HistoryEntry>,
+    onClear: () -> Unit,
     onCopy: (HistoryEntry) -> Unit
 ) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = MaterialTheme.shapes.extraLarge,
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainer
-        ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
-    ) {
-        Column {
-            history.forEachIndexed { index, entry ->
-                HistoryRow(
-                    entry = entry,
-                    onCopy = { onCopy(entry) }
-                )
-
-                if (index < history.lastIndex) {
-                    Spacer(modifier = Modifier.height(2.dp))
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun EmptyHistory() {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = MaterialTheme.shapes.extraLarge,
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainer
-        ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 28.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Surface(
-                modifier = Modifier.size(56.dp),
-                shape = CircleShape,
-                color = MaterialTheme.colorScheme.surfaceContainerHighest
-            ) {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        painter = painterResource(R.drawable.ic_inventory_2),
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.size(27.dp)
+            SectionHeader(title = stringResource(R.string.history_label_title))
+            if (history.isNotEmpty()) {
+                TextButton(onClick = onClear) {
+                    Text(
+                        text = stringResource(R.string.history_action_button_clear),
+                        fontWeight = FontWeight.Bold
                     )
                 }
             }
+        }
 
-            Spacer(modifier = Modifier.height(12.dp))
-
-            Text(
-                text = stringResource(R.string.history_label_empty),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+        if (history.isEmpty()) {
+            EmptyHistoryState()
+        } else {
+            Card(
+                shape = RoundedCornerShape(24.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow)
+            ) {
+                Column(modifier = Modifier.padding(vertical = 4.dp)) {
+                    history.take(10).forEach { entry ->
+                        HistoryItem(entry = entry, onCopy = { onCopy(entry) })
+                    }
+                }
+            }
         }
     }
 }
 
 @Composable
-private fun HistoryRow(
-    entry: HistoryEntry,
-    onCopy: () -> Unit
-) {
+private fun HistoryItem(entry: HistoryEntry, onCopy: () -> Unit) {
     var justCopied by remember { mutableStateOf(false) }
 
     LaunchedEffect(justCopied) {
@@ -796,21 +570,19 @@ private fun HistoryRow(
     }
 
     ListItem(
-        modifier = Modifier.fillMaxWidth(),
         colors = ListItemDefaults.colors(containerColor = Color.Transparent),
         headlineContent = {
             Text(
                 text = entry.text,
                 style = MaterialTheme.typography.bodyMedium,
-                maxLines = 2,
+                maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
         },
         supportingContent = {
             Text(
                 text = "${sourceLabel(entry.source)} · ${formatTime(entry.timestamp)}",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                style = MaterialTheme.typography.bodySmall
             )
         },
         trailingContent = {
@@ -819,33 +591,64 @@ private fun HistoryRow(
                     onCopy()
                     justCopied = true
                 },
-                modifier = Modifier.size(40.dp)
+                modifier = Modifier.size(36.dp)
             ) {
-                AnimatedContent(
-                    targetState = justCopied,
-                    transitionSpec = {
-                        (scaleIn() + fadeIn()) togetherWith
-                                (scaleOut() + fadeOut())
-                    },
-                    label = "copyIcon"
-                ) { copied ->
-                    Icon(
-                        painter = if (copied) {
-                            painterResource(R.drawable.ic_check)
-                        } else {
-                            painterResource(R.drawable.ic_content_copy)
-                        },
-                        contentDescription = null,
-                        tint = if (copied) {
-                            MaterialTheme.colorScheme.primary
-                        } else {
-                            MaterialTheme.colorScheme.onSurfaceVariant
-                        },
-                        modifier = Modifier.size(19.dp)
-                    )
-                }
+                Icon(
+                    painter = if (justCopied) painterResource(R.drawable.ic_check) else painterResource(R.drawable.ic_content_copy),
+                    contentDescription = null,
+                    modifier = Modifier.size(16.dp)
+                )
             }
         }
+    )
+}
+
+@Composable
+private fun EmptyHistoryState() {
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(120.dp),
+        shape = RoundedCornerShape(24.dp),
+        color = MaterialTheme.colorScheme.surfaceContainerLow
+    ) {
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Icon(
+                painter = painterResource(R.drawable.ic_inventory_2),
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                modifier = Modifier.size(32.dp)
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = stringResource(R.string.history_label_empty),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+            )
+        }
+    }
+}
+
+@Composable
+private fun ClearHistoryDialog(onConfirm: () -> Unit, onDismiss: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        confirmButton = {
+            Button(onClick = onConfirm) {
+                Text(stringResource(R.string.history_action_button_clear))
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.common_action_button_cancel))
+            }
+        },
+        title = { Text(stringResource(R.string.history_clear_confirm_title)) },
+        text = { Text(stringResource(R.string.history_clear_confirm_desc)) }
     )
 }
 
@@ -858,9 +661,26 @@ private fun sourceLabel(source: ExtractionMode): String =
         }
     )
 
-private fun formatTime(
-    timestamp: Long
-): String = SimpleDateFormat(
-    "MMM d, HH:mm",
-    Locale.getDefault()
-).format(Date(timestamp))
+private fun formatTime(timestamp: Long): String =
+    SimpleDateFormat("MMM d, HH:mm", Locale.getDefault()).format(Date(timestamp))
+
+@Preview(showBackground = true)
+@Composable
+private fun MainScreenPreview() {
+    TextGrabTheme {
+        MainScreenContent(
+            state = MainState(
+                history = listOf(
+                    HistoryEntry(1L, "Sample extracted text 1", System.currentTimeMillis(), ExtractionMode.ACCESSIBILITY),
+                    HistoryEntry(2L, "Sample extracted text 2", System.currentTimeMillis() - 1000000, ExtractionMode.OCR)
+                ),
+                permissions = PermissionUiState(accessibility = true, overlay = false, notifications = true)
+            ),
+            onEvent = {},
+            onOpenAccessibility = {},
+            onOpenOverlay = {},
+            onOpenNotifications = {},
+            onNavigateToOcr = {}
+        )
+    }
+}

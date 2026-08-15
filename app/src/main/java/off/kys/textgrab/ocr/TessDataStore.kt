@@ -89,18 +89,4 @@ object TessDataStore {
         val file = File(getTessDataPath(context, version), "tessdata/$tessCode.traineddata")
         return if (file.exists()) file.delete() else false
     }
-
-    /**
-     * Legacy method for the current OcrEngine until it's updated to be version-aware.
-     * Defaults to STANDARD if not found elsewhere.
-     */
-    fun getLegacyDataPath(context: Context, tessLanguage: String): String {
-        // Find which version has these languages, prioritizing BEST models
-        val versions = TesseractVersion.entries.reversed()
-        for (v in versions) {
-            val allPresent = tessLanguage.split('+').all { isInstalled(context, it, v) }
-            if (allPresent) return getTessDataPath(context, v)
-        }
-        return getTessDataPath(context, TesseractVersion.STANDARD)
-    }
 }
