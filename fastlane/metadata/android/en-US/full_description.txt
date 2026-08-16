@@ -1,0 +1,11 @@
+TextGrab is a modern, Free and Open Source Software (FOSS) Android application designed to make screen content interactive. It allows users to extract and copy text from almost any app or screen with advanced multi-selection support.
+
+Key Features:
+• Accessibility-Based Extraction: High accuracy and low resource usage using Android's Accessibility Services.
+• Multi-Selection Support: Select multiple blocks of text simultaneously and combine or copy them.
+• OCR Fallback: Powerful Tesseract OCR for text within images or non-interactive elements.
+• On-Demand OCR Packages: Keep the app lightweight by downloading only the language models you need.
+• Privacy-Focused: No analytics, no tracking, and fully open source.
+
+Permissions Note:
+TextGrab requires Accessibility Service to read screen content and Media Projection for the OCR fallback engine. Internet access is used only to download optional OCR language packages.

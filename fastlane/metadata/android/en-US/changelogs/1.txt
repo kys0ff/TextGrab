@@ -1,0 +1,5 @@
+Initial release of TextGrab.
+- Dual-engine architecture (Accessibility + OCR).
+- Multi-selection support for screen text.
+- On-demand OCR package management.
+- FOSS and privacy-centric.
