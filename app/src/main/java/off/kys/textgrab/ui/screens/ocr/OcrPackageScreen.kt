@@ -307,7 +307,7 @@ private fun OcrVersionRowModern(
                     }
                 }
                 Text(
-                    text = "${version.sizeBytes / 1_000_000} MB",
+                    text = stringResource(R.string.ocr_package_label_size_mb, version.sizeBytes / 1_000_000),
                     style = MaterialTheme.typography.labelLarge,
                     color = if (isDefault) MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
                     else MaterialTheme.colorScheme.onSurfaceVariant
@@ -436,7 +436,7 @@ private fun DownloadProgressCompact(progress: Float, accent: Color) {
             trackColor = MaterialTheme.colorScheme.surfaceVariant
         )
         Text(
-            text = "${(progress * 100).toInt()}",
+            text = stringResource(R.string.ocr_package_label_percent, (progress * 100).toInt()),
             style = MaterialTheme.typography.labelSmall,
             fontWeight = FontWeight.Bold
         )

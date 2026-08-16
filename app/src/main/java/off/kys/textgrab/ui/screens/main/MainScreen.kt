@@ -348,7 +348,7 @@ private fun StatusIcon(
                         trackColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
                     )
                     Text(
-                        text = "$granted/$total",
+                        text = stringResource(R.string.main_label_readiness_progress, granted, total),
                         style = MaterialTheme.typography.labelLarge,
                         fontWeight = FontWeight.Black,
                         color = MaterialTheme.colorScheme.onSurface
@@ -561,6 +561,8 @@ private fun HistorySection(
 @Composable
 private fun HistoryItem(entry: HistoryEntry, onCopy: () -> Unit) {
     var justCopied by remember { mutableStateOf(false) }
+    val dateFormat = stringResource(R.string.common_date_format_history)
+    val separator = stringResource(R.string.common_label_separator_bullet)
 
     LaunchedEffect(justCopied) {
         if (justCopied) {
@@ -581,7 +583,7 @@ private fun HistoryItem(entry: HistoryEntry, onCopy: () -> Unit) {
         },
         supportingContent = {
             Text(
-                text = "${sourceLabel(entry.source)} · ${formatTime(entry.timestamp)}",
+                text = "${sourceLabel(entry.source)}$separator${formatTime(entry.timestamp, dateFormat)}",
                 style = MaterialTheme.typography.bodySmall
             )
         },
@@ -661,8 +663,8 @@ private fun sourceLabel(source: ExtractionMode): String =
         }
     )
 
-private fun formatTime(timestamp: Long): String =
-    SimpleDateFormat("MMM d, HH:mm", Locale.getDefault()).format(Date(timestamp))
+private fun formatTime(timestamp: Long, format: String): String =
+    SimpleDateFormat(format, Locale.getDefault()).format(Date(timestamp))
 
 @Preview(showBackground = true)
 @Composable

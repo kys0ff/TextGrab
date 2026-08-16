@@ -86,7 +86,7 @@ fun OverlayActionBar(
                                     }
                                 },
                                 label = "selectedCountBadge",
-                            ) { count -> Text("$count") }
+                            ) { count -> Text(stringResource(R.string.overlay_label_selection_count, count)) }
                         }
                     }
                 },

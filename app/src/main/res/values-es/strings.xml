@@ -1,105 +1,113 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Common UI -->
-    <string name="common_app_label_name" translatable="false">TextGrab</string>
-    <string name="common_app_label_tagline">Captura cualquier texto en tu pantalla</string>
-    <string name="common_action_button_grant">Conceder</string>
-    <string name="common_action_button_settings">Abrir ajustes</string>
+
+    <!-- Accessibility -->
+    <string name="accessibility_service_label_description">TextGrab lee el texto en tu pantalla actual para que puedas tocar y copiar cualquier palabra, línea o bloque, incluyendo alfabetos árabe y latín. El texto se procesa en el dispositivo y nunca se sube.</string>
+    <string name="accessibility_service_label_name">TextGrab: Extracción de texto</string>
+
+    <!-- Common -->
     <string name="common_action_button_cancel">Cancelar</string>
     <string name="common_action_button_download">Descargar</string>
-    <string name="common_toast_copied">Copiado al portapapeles</string>
-    <string name="common_toast_multi_copied">Copiado %1$d elementos</string>
+    <string name="common_action_button_grant">Conceder</string>
+    <string name="common_action_button_settings">Abrir ajustes</string>
+    <string name="common_app_label_name" translatable="false">TextGrab</string>
+    <string name="common_app_label_tagline">Captura cualquier texto en tu pantalla</string>
+    <string name="common_date_format_history">d MMM, HH:mm</string>
     <string name="common_mode_label_accessibility">Accesibilidad</string>
     <string name="common_mode_label_ocr">OCR</string>
     <string name="common_status_label_granted">Habilitado</string>
     <string name="common_status_label_needed">Acción necesaria</string>
-
-    <!-- Accessibility Service -->
-    <string name="accessibility_service_label_name">TextGrab: Extracción de texto</string>
-    <string name="accessibility_service_label_description">TextGrab lee el texto en tu pantalla actual para que puedas tocar y copiar cualquier palabra, línea o bloque, incluyendo alfabetos árabe y latín. El texto se procesa en el dispositivo y nunca se sube.</string>
-
-    <!-- Main Screen -->
-    <string name="main_action_button_scan">Escanear ahora</string>
-    <string name="main_label_setup_title">Configuración</string>
-    <string name="main_label_setup_intro">Habilita los elementos a continuación, añade el mosaico de Ajustes rápidos, y luego captura texto desde cualquier lugar.</string>
-    <string name="main_label_readiness_ready_title">¡Todo listo!</string>
-    <string name="main_label_readiness_pending_title">Ya casi está</string>
-    <string name="main_label_readiness_ready_desc">TextGrab está listo para usar. Abre cualquier aplicación y toca el mosaico para capturar texto.</string>
-    <string name="main_label_readiness_pending_desc">Completa los pasos de configuración a continuación para empezar a capturar texto de tu pantalla.</string>
+    <string name="common_toast_copied">Copiado al portapapeles</string>
+    <string name="common_toast_multi_copied">Copiado %1$d elementos</string>
 
     <!-- History -->
-    <string name="history_label_title">Historial de copias</string>
-    <string name="history_label_empty">El texto que copies aparecerá aquí.</string>
     <string name="history_action_button_clear">Limpiar</string>
+    <string name="history_clear_confirm_desc">Esto eliminará permanentemente todos los elementos de texto copiados de tu historial.</string>
+    <string name="history_clear_confirm_title">¿Limpiar historial?</string>
+    <string name="history_label_empty">El texto que copies aparecerá aquí.</string>
+    <string name="history_label_title">Historial de copias</string>
 
-    <!-- Overlay UI -->
+    <!-- Main -->
+    <string name="main_action_button_scan">Escanear ahora</string>
+    <string name="main_label_readiness_pending_desc">Completa los pasos de configuración a continuación para empezar a capturar texto de tu pantalla.</string>
+    <string name="main_label_readiness_pending_title">Ya casi está</string>
+    <string name="main_label_readiness_ready_desc">TextGrab está listo para usar. Abre cualquier aplicación y toca el mosaico para capturar texto.</string>
+    <string name="main_label_readiness_ready_title">¡Todo listo!</string>
+    <string name="main_label_setup_intro">Habilita los elementos a continuación, añade el mosaico de Ajustes rápidos, y luego captura texto desde cualquier lugar.</string>
+    <string name="main_label_setup_title">Configuración</string>
+
+    <!-- Notif -->
+    <string name="notif_capture_channel_name">Captura de pantalla</string>
+    <string name="notif_capture_label_text">Capturando una instantánea para el reconocimiento de texto en el dispositivo…</string>
+    <string name="notif_capture_label_title">TextGrab está leyendo la pantalla</string>
+    <string name="notif_download_channel_name">Descargas</string>
+    <string name="notif_download_label_desc">Descargando %1$s (%2$s)…</string>
+    <string name="notif_download_label_failed">Error al descargar %1$s.</string>
+    <string name="notif_download_label_success">%1$s descargado correctamente.</string>
+    <string name="notif_download_label_title">Descargando datos OCR</string>
+
+    <!-- Ocr -->
+    <string name="ocr_lang_label_arabic">Árabe</string>
+    <string name="ocr_lang_label_auto">Automático (Todos los instalados)</string>
+    <string name="ocr_lang_label_both">Ambos (Ára+Ing)</string>
+    <string name="ocr_lang_label_chinese">Chino</string>
+    <string name="ocr_lang_label_french">Francés</string>
+    <string name="ocr_lang_label_german">Alemán</string>
+    <string name="ocr_lang_label_japanese">Japonés</string>
+    <string name="ocr_lang_label_korean">Coreano</string>
+    <string name="ocr_lang_label_latin">Inglés / Latín</string>
+    <string name="ocr_package_action_button_delete">Eliminar</string>
+    <string name="ocr_package_action_button_download">Descargar</string>
+    <string name="ocr_package_action_button_refresh">Actualizar tamaños de modelos</string>
+    <string name="ocr_package_action_button_set_default">Establecer predeterminado</string>
+    <string name="ocr_package_delete_confirm_desc">¿Estás seguro de que quieres eliminar el modelo OCR %1$s (%2$s) de tu dispositivo?</string>
+    <string name="ocr_package_delete_confirm_title">¿Eliminar paquete?</string>
+    <string name="ocr_package_label_auto_warning_desc">El uso simultáneo de múltiples modelos OCR puede ralentizar significativamente el reconocimiento y aumentar el uso de memoria en algunos dispositivos. ¿Continuar de todos modos?</string>
+    <string name="ocr_package_label_auto_warning_title">Advertencia de rendimiento</string>
+    <string name="ocr_package_label_desc">Descarga datos de idioma para OCR sin conexión. Los modelos de alta precisión (Mejor) son más lentos y pesados, mientras que los modelos optimizados (Rápido) usan menos memoria.</string>
+    <string name="ocr_package_label_downloading">Descargando (%1$d%%)</string>
+    <string name="ocr_package_label_installed">Instalado</string>
+    <string name="ocr_package_label_missing_desc">Los datos para %1$s aún no se han descargado. ¿Te gustaría descargarlos ahora para OCR sin conexión?</string>
+    <string name="ocr_package_label_missing_generic">No se encontró el modelo OCR. Por favor, descárgalo desde los ajustes.</string>
+    <string name="ocr_package_label_missing_title">Faltan datos de idioma</string>
+    <string name="ocr_package_label_percent">%1$d%%</string>
+    <string name="ocr_package_label_recommended">Recomendado</string>
+    <string name="ocr_package_label_size_mb">%1$d MB</string>
+    <string name="ocr_package_label_title">Paquetes OCR</string>
+    <string name="ocr_package_label_version_best">Mejor</string>
+    <string name="ocr_package_label_version_fast">Rápido</string>
+    <string name="ocr_package_label_version_standard">Estándar</string>
+
+    <!-- Overlay -->
     <string name="overlay_action_button_close">Cerrar</string>
     <string name="overlay_action_button_collapse">Contraer</string>
+    <string name="overlay_action_button_copy_all">Copiar todo</string>
+    <string name="overlay_action_button_copy_selected">Copiar (%1$d)</string>
     <string name="overlay_action_button_expand">Expandir</string>
-    <string name="overlay_action_button_select">Seleccionar</string>
     <string name="overlay_action_button_rescan">Volver a escanear</string>
     <string name="overlay_action_button_scroll">Desplazar</string>
     <string name="overlay_action_button_scroll_done">Desplazamiento finalizado</string>
-    <string name="overlay_action_button_copy_all">Copiar todo</string>
-    <string name="overlay_action_button_copy_selected">Copiar (%1$d)</string>
-    <string name="overlay_label_scanning">Escaneando…</string>
-    <string name="overlay_label_loading_model">Cargando modelo OCR…</string>
-    <string name="overlay_label_hint_tap">Toca cualquier recuadro para empezar a seleccionar</string>
-    <string name="overlay_label_permission_denied">Se denegó el permiso de captura de pantalla.</string>
+    <string name="overlay_action_button_select">Seleccionar</string>
     <string name="overlay_label_empty_accessibility">No se encontró texto legible. Cambia al modo OCR para imágenes o contenido protegido.</string>
     <string name="overlay_label_empty_ocr">No se detectó texto en la pantalla.</string>
+    <string name="overlay_label_hint_tap">Toca cualquier recuadro para empezar a seleccionar</string>
+    <string name="overlay_label_loading_model">Cargando modelo OCR…</string>
+    <string name="overlay_label_permission_denied">Se denegó el permiso de captura de pantalla.</string>
+    <string name="overlay_label_scanning">Escaneando…</string>
 
-    <!-- Notifications -->
-    <string name="notif_capture_label_title">TextGrab está leyendo la pantalla</string>
-    <string name="notif_capture_label_text">Capturando una instantánea para el reconocimiento de texto en el dispositivo…</string>
-    <string name="notif_capture_channel_name">Captura de pantalla</string>
-    <string name="notif_download_label_title">Descargando datos OCR</string>
-    <string name="notif_download_label_desc">Descargando %1$s (%2$s)…</string>
-    <string name="notif_download_label_success">%1$s descargado correctamente.</string>
-    <string name="notif_download_label_failed">Error al descargar %1$s.</string>
-    <string name="notif_download_channel_name">Descargas</string>
-
-    <!-- OCR Packages -->
-    <string name="ocr_package_label_title">Paquetes OCR</string>
-    <string name="ocr_package_label_desc">Descarga datos de idioma para OCR sin conexión. Los modelos de alta precisión (Mejor) son más lentos y pesados, mientras que los modelos optimizados (Rápido) usan menos memoria.</string>
-    <string name="ocr_package_label_version_fast">Rápido</string>
-    <string name="ocr_package_label_version_standard">Estándar</string>
-    <string name="ocr_package_label_version_best">Mejor</string>
-    <string name="ocr_package_label_recommended">Recomendado</string>
-    <string name="ocr_package_label_downloading">Descargando (%1$d%%)</string>
-    <string name="ocr_package_label_installed">Instalado</string>
-    <string name="ocr_package_label_missing_title">Faltan datos de idioma</string>
-    <string name="ocr_package_label_missing_desc">Los datos para %1$s aún no se han descargado. ¿Te gustaría descargarlos ahora para OCR sin conexión?</string>
-    <string name="ocr_package_label_missing_generic">No se encontró el modelo OCR. Por favor, descárgalo desde los ajustes.</string>
-    <string name="ocr_package_label_auto_warning_title">Advertencia de rendimiento</string>
-    <string name="ocr_package_label_auto_warning_desc">El uso simultáneo de múltiples modelos OCR puede ralentizar significativamente el reconocimiento y aumentar el uso de memoria en algunos dispositivos. ¿Continuar de todos modos?</string>
-    <string name="ocr_package_action_button_download">Descargar</string>
-    <string name="ocr_package_action_button_delete">Eliminar</string>
-    <string name="ocr_package_action_button_set_default">Establecer predeterminado</string>
-    <string name="ocr_package_action_button_refresh">Actualizar tamaños de modelos</string>
-    <string name="ocr_lang_label_arabic">Árabe</string>
-    <string name="ocr_lang_label_latin">Inglés / Latín</string>
-    <string name="ocr_lang_label_french">Francés</string>
-    <string name="ocr_lang_label_german">Alemán</string>
-    <string name="ocr_lang_label_chinese">Chino</string>
-    <string name="ocr_lang_label_japanese">Japonés</string>
-    <string name="ocr_lang_label_korean">Coreano</string>
-    <string name="ocr_lang_label_both">Ambos (Ára+Ing)</string>
-    <string name="ocr_lang_label_auto">Automático (Todos los instalados)</string>
-
-    <!-- Permissions -->
-    <string name="permission_accessibility_label_title">Servicio de accesibilidad</string>
+    <!-- Permission -->
     <string name="permission_accessibility_label_desc">Motor principal. Lee el texto en pantalla directamente desde la ventana activa, rápido, preciso y eficiente con la batería.</string>
-    <string name="permission_overlay_label_title">Mostrar sobre otras aplicaciones</string>
-    <string name="permission_overlay_label_desc">Permite que TextGrab dibuje la capa de texto seleccionable sobre lo que estés viendo.</string>
-    <string name="permission_notifications_label_title">Notificaciones</string>
-    <string name="permission_notifications_label_desc">Necesario para mostrar indicadores de estado mientras TextGrab lee tu pantalla o descarga paquetes de idiomas OCR.</string>
+    <string name="permission_accessibility_label_title">Servicio de accesibilidad</string>
     <string name="permission_notifications_action_button_grant">Conceder</string>
-    <string name="permission_projection_label_title">Captura de pantalla (Respaldo OCR)</string>
+    <string name="permission_notifications_label_desc">Necesario para mostrar indicadores de estado mientras TextGrab lee tu pantalla o descarga paquetes de idiomas OCR.</string>
+    <string name="permission_notifications_label_title">Notificaciones</string>
+    <string name="permission_overlay_label_desc">Permite que TextGrab dibuje la capa de texto seleccionable sobre lo que estés viendo.</string>
+    <string name="permission_overlay_label_title">Mostrar sobre otras aplicaciones</string>
     <string name="permission_projection_label_desc">Se usa solo cuando una pantalla no se puede leer directamente (Ej: imágenes, lienzos, juegos o vistas protegidas). Se solicita consentimiento cada vez.</string>
+    <string name="permission_projection_label_title">Captura de pantalla (Respaldo OCR)</string>
 
-    <!-- Quick Settings Tile -->
+    <!-- Tile -->
     <string name="tile_label_name">TextGrab</string>
-    <string name="tile_setup_label_title">Añade el mosaico de Ajustes rápidos</string>
     <string name="tile_setup_label_desc">Desliza hacia abajo dos veces, toca el botón de editar (lápiz), y luego arrastra el mosaico de TextGrab a tus mosaicos activos. Tócalo en cualquier momento para capturar texto al instante.</string>
-</resources>
+    <string name="tile_setup_label_title">Añade el mosaico de Ajustes rápidos</string>
+    </resources>
