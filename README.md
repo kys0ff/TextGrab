@@ -3,7 +3,7 @@
 [![Kotlin](https://img.shields.io/badge/kotlin-2.1.0-blue.svg?logo=kotlin)](http://kotlinlang.org)
 [![Android](https://img.shields.io/badge/platform-Android-green.svg?logo=android)](https://www.android.com)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Liberapay](https://img.shields.io/liberapay/receives/kys0adam.svg?logo=liberapay)](https://liberapay.com/kys0adam/donate)
+[![Liberapay](https://img.shields.io/liberapay/receives/kys0ff.svg?logo=liberapay)](https://liberapay.com/kys0ff/donate)
 
 TextGrab is a modern, Free and Open Source Software (FOSS) Android application designed to make screen content interactive. It allows users to extract and copy text from almost any app or screen with advanced multi-selection support.
 
@@ -46,7 +46,7 @@ To provide its core functionality, TextGrab requires the following permissions:
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/kys0adam/TextGrab.git
+   git clone https://github.com/kys0ff/TextGrab.git
    ```
 2. Open the project in Android Studio.
 3. Build and run the app on your device.
@@ -59,7 +59,7 @@ Contributions are welcome! Whether it's a bug report, a feature request, or a tr
 
 If you find this project useful, consider supporting development via Liberapay:
 
-[![Donate with Liberapay](https://liberapay.com/assets/widgets/donate.svg)](https://liberapay.com/kys0adam/donate)
+[![Donate with Liberapay](https://liberapay.com/assets/widgets/donate.svg)](https://liberapay.com/kys0ff/donate)
 
 ## License
 
