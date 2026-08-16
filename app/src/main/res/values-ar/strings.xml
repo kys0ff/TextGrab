@@ -29,6 +29,7 @@
 
     <!-- Main -->
     <string name="main_action_button_scan">التقاط الآن</string>
+    <string name="main_label_permissions_section">الوصول إلى النظام</string>
     <string name="main_label_readiness_pending_desc">أكمل خطوات الإعداد أدناه لبدء التقاط النص من شاشتك.</string>
     <string name="main_label_readiness_pending_title">أوشكت على الانتهاء</string>
     <string name="main_label_readiness_ready_desc">تكست غراب جاهز للاستخدام. افتح أي تطبيق واضغط على المربع لالتقاط النص.</string>

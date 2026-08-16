@@ -30,6 +30,7 @@
 
     <!-- Main -->
     <string name="main_action_button_scan">Scan now</string>
+    <string name="main_label_permissions_section">System access</string>
     <string name="main_label_readiness_pending_desc">Complete the setup steps below to start grabbing text from your screen.</string>
     <string name="main_label_readiness_pending_title">Almost there</string>
     <string name="main_label_readiness_progress" translatable="false">%1$d/%2$d</string>

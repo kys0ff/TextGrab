@@ -29,6 +29,7 @@
 
     <!-- Main -->
     <string name="main_action_button_scan">Jetzt scannen</string>
+    <string name="main_label_permissions_section">Systemzugriff</string>
     <string name="main_label_readiness_pending_desc">Schließen Sie die unten stehenden Einrichtungsschritte ab, um Text von Ihrem Bildschirm zu erfassen.</string>
     <string name="main_label_readiness_pending_title">Fast geschafft</string>
     <string name="main_label_readiness_ready_desc">TextGrab ist einsatzbereit. Öffnen Sie eine beliebige App und tippen Sie auf die Kachel, um Text zu erfassen.</string>

@@ -203,7 +203,7 @@ private fun MainScreenContent(
             }
 
             item {
-                SectionHeader(title = stringResource(R.string.permission_accessibility_label_title))
+                SectionHeader(title = stringResource(R.string.main_label_permissions_section))
             }
 
             item {

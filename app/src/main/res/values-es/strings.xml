@@ -29,6 +29,7 @@
 
     <!-- Main -->
     <string name="main_action_button_scan">Escanear ahora</string>
+    <string name="main_label_permissions_section">Acceso al sistema</string>
     <string name="main_label_readiness_pending_desc">Completa los pasos de configuración a continuación para empezar a capturar texto de tu pantalla.</string>
     <string name="main_label_readiness_pending_title">Ya casi está</string>
     <string name="main_label_readiness_ready_desc">TextGrab está listo para usar. Abre cualquier aplicación y toca el mosaico para capturar texto.</string>

@@ -29,6 +29,7 @@
 
     <!-- Main -->
     <string name="main_action_button_scan">Scanner maintenant</string>
+    <string name="main_label_permissions_section">Accès système</string>
     <string name="main_label_readiness_pending_desc">Terminez les étapes de configuration ci-dessous pour commencer à saisir du texte depuis votre écran.</string>
     <string name="main_label_readiness_pending_title">On y est presque</string>
     <string name="main_label_readiness_ready_desc">TextGrab est prêt à l\'emploi. Ouvrez n\'importe quelle application et appuyez sur la tuile pour saisir du texte.</string>

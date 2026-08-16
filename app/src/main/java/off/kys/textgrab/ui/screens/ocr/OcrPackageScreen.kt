@@ -2,7 +2,9 @@ package off.kys.textgrab.ui.screens.ocr
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
@@ -11,9 +13,11 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -25,22 +29,23 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.FilledTonalIconButton
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -49,6 +54,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -90,14 +96,16 @@ private fun OcrPackageContent(
     onEvent: (OcrPackageEvent) -> Unit,
     onPop: () -> Unit
 ) {
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
+
     Scaffold(
+        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         containerColor = MaterialTheme.colorScheme.surface,
         topBar = {
-            TopAppBar(
+            LargeTopAppBar(
                 title = {
                     Text(
                         text = stringResource(R.string.ocr_package_label_title),
-                        style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold
                     )
                 },
@@ -119,8 +127,9 @@ private fun OcrPackageContent(
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.surface,
-                    scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainer
-                )
+                    scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainer,
+                ),
+                scrollBehavior = scrollBehavior
             )
         }
     ) { innerPadding ->
@@ -130,14 +139,13 @@ private fun OcrPackageContent(
                 contentPadding = PaddingValues(
                     start = 16.dp,
                     end = 16.dp,
-                    top = innerPadding.calculateTopPadding(),
+                    top = innerPadding.calculateTopPadding() + 8.dp,
                     bottom = innerPadding.calculateBottomPadding() + 24.dp
                 ),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
+                verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 item {
-                    Spacer(modifier = Modifier.height(8.dp))
-                    OcrIntroCompact()
+                    OcrIntroBanner()
                 }
 
                 items(
@@ -170,19 +178,27 @@ private fun OcrPackageContent(
 }
 
 @Composable
-private fun OcrIntroCompact() {
+private fun OcrIntroBanner() {
     Surface(
-        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
-        shape = RoundedCornerShape(16.dp),
+        color = MaterialTheme.colorScheme.surfaceContainerLow,
+        shape = RoundedCornerShape(18.dp),
         modifier = Modifier.fillMaxWidth()
     ) {
-        Text(
-            text = stringResource(R.string.ocr_package_label_desc),
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(16.dp),
-            lineHeight = 20.sp
-        )
+        Row(modifier = Modifier.height(IntrinsicSize.Min)) {
+            Box(
+                modifier = Modifier
+                    .width(4.dp)
+                    .fillMaxHeight()
+                    .background(MaterialTheme.colorScheme.primary)
+            )
+            Text(
+                text = stringResource(R.string.ocr_package_label_desc),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(16.dp),
+                lineHeight = 20.sp
+            )
+        }
     }
 }
 
@@ -195,19 +211,26 @@ private fun OcrPackageCardModern(
 
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(24.dp),
+        shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
-        Column(modifier = Modifier.padding(12.dp)) {
+        Column {
             PackageHeader(
                 packageName = pkg.displayName,
-                anyDownloaded = anyDownloaded
+                anyDownloaded = anyDownloaded,
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp)
             )
 
-            Spacer(modifier = Modifier.height(8.dp))
+            HorizontalDivider(
+                modifier = Modifier.fillMaxWidth(),
+                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
+            )
 
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Column(
+                modifier = Modifier.padding(12.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
                 pkg.versions.forEach { version ->
                     OcrVersionRowModern(
                         version = version,
@@ -230,19 +253,18 @@ private fun OcrPackageCardModern(
 @Composable
 private fun PackageHeader(
     packageName: String,
-    anyDownloaded: Boolean
+    anyDownloaded: Boolean,
+    modifier: Modifier = Modifier
 ) {
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 4.dp),
+        modifier = modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
             modifier = Modifier.weight(1f),
             text = packageName,
             style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Bold,
+            fontWeight = FontWeight.SemiBold,
             color = MaterialTheme.colorScheme.onSurface
         )
 
@@ -251,12 +273,20 @@ private fun PackageHeader(
             enter = scaleIn() + fadeIn(),
             exit = scaleOut() + fadeOut()
         ) {
-            Icon(
-                painter = painterResource(R.drawable.ic_check_circle),
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(24.dp)
-            )
+            Surface(
+                shape = CircleShape,
+                color = MaterialTheme.colorScheme.primaryContainer,
+                modifier = Modifier.size(28.dp)
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Icon(
+                        painter = painterResource(R.drawable.ic_check_circle),
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                        modifier = Modifier.size(16.dp)
+                    )
+                }
+            }
         }
     }
 }
@@ -274,13 +304,16 @@ private fun OcrVersionRowModern(
     val isDownloaded = state is DownloadState.Downloaded
 
     val backgroundColor by animateColorAsState(
-        targetValue = if (isDefault) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.7f)
+        targetValue = if (isDefault) MaterialTheme.colorScheme.secondaryContainer
         else MaterialTheme.colorScheme.surfaceContainerHigh,
+        animationSpec = tween(220),
         label = "versionBg"
     )
 
     Surface(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .animateContentSize(),
         shape = RoundedCornerShape(16.dp),
         color = backgroundColor,
         onClick = if (isDownloaded) onSetDefault else ({})
@@ -298,8 +331,9 @@ private fun OcrVersionRowModern(
                     Text(
                         text = versionName(version.version),
                         style = MaterialTheme.typography.bodyLarge,
-                        fontWeight = FontWeight.Bold,
-                        color = if (isDefault) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface
+                        fontWeight = FontWeight.SemiBold,
+                        color = if (isDefault) MaterialTheme.colorScheme.onSecondaryContainer
+                        else MaterialTheme.colorScheme.onSurface
                     )
                     if (version.isRecommended) {
                         Spacer(modifier = Modifier.width(8.dp))
@@ -308,8 +342,8 @@ private fun OcrVersionRowModern(
                 }
                 Text(
                     text = stringResource(R.string.ocr_package_label_size_mb, version.sizeBytes / 1_000_000),
-                    style = MaterialTheme.typography.labelLarge,
-                    color = if (isDefault) MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
+                    style = MaterialTheme.typography.labelMedium,
+                    color = if (isDefault) MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.75f)
                     else MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
@@ -331,27 +365,36 @@ private fun OcrVersionRowModern(
 @Composable
 private fun RecommendedPill() {
     Surface(
-        shape = CircleShape,
+        shape = RoundedCornerShape(6.dp),
         color = MaterialTheme.colorScheme.tertiaryContainer,
-        modifier = Modifier.height(20.dp)
+        modifier = Modifier.height(22.dp)
     ) {
-        Text(
-            text = stringResource(R.string.ocr_package_label_recommended),
-            modifier = Modifier.padding(horizontal = 8.dp),
-            style = MaterialTheme.typography.labelSmall,
-            fontWeight = FontWeight.Black,
-            color = MaterialTheme.colorScheme.onTertiaryContainer
-        )
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier.padding(horizontal = 8.dp)
+        ) {
+            Text(
+                text = stringResource(R.string.ocr_package_label_recommended),
+                style = MaterialTheme.typography.labelSmall,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onTertiaryContainer
+            )
+        }
     }
 }
 
 @Composable
 private fun VersionIconModern(style: VersionStyle, selected: Boolean) {
+    val containerColor by animateColorAsState(
+        targetValue = if (selected) MaterialTheme.colorScheme.primary
+        else MaterialTheme.colorScheme.surfaceContainerHighest,
+        label = "iconContainer"
+    )
     Box(
         modifier = Modifier
-            .size(40.dp)
-            .clip(RoundedCornerShape(12.dp))
-            .background(if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant),
+            .size(42.dp)
+            .clip(RoundedCornerShape(14.dp))
+            .background(containerColor),
         contentAlignment = Alignment.Center
     ) {
         Icon(
@@ -376,16 +419,19 @@ private fun VersionActionsModern(
         is DownloadState.Downloaded -> {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 if (isDefault) {
-                    Icon(
-                        painter = painterResource(R.drawable.ic_check),
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                        modifier = Modifier
-                            .size(24.dp)
-                            .padding(4.dp)
-                    )
+                    Box(
+                        modifier = Modifier.size(40.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            painter = painterResource(R.drawable.ic_check),
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSecondaryContainer,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
                 } else {
-                    FilledTonalIconButton(onClick = onSetDefault, modifier = Modifier.size(36.dp)) {
+                    FilledTonalIconButton(onClick = onSetDefault, modifier = Modifier.size(40.dp)) {
                         Icon(
                             painter = painterResource(R.drawable.ic_check),
                             contentDescription = null,
@@ -394,7 +440,7 @@ private fun VersionActionsModern(
                     }
                 }
                 Spacer(modifier = Modifier.width(4.dp))
-                IconButton(onClick = onDelete, modifier = Modifier.size(36.dp)) {
+                IconButton(onClick = onDelete, modifier = Modifier.size(40.dp)) {
                     Icon(
                         painter = painterResource(R.drawable.ic_delete_outline),
                         contentDescription = null,
@@ -410,7 +456,7 @@ private fun VersionActionsModern(
         }
 
         else -> {
-            FilledIconButton(onClick = onDownload, modifier = Modifier.size(36.dp)) {
+            FilledIconButton(onClick = onDownload, modifier = Modifier.size(40.dp)) {
                 Icon(
                     painter = painterResource(R.drawable.ic_cloud_download),
                     contentDescription = null,
@@ -425,24 +471,27 @@ private fun VersionActionsModern(
 private fun DownloadProgressCompact(progress: Float, accent: Color) {
     val animatedProgress by animateFloatAsState(
         targetValue = progress.coerceIn(0f, 1f),
+        animationSpec = tween(300),
         label = "dlProg"
     )
-    Box(contentAlignment = Alignment.Center, modifier = Modifier.size(36.dp)) {
+    Box(contentAlignment = Alignment.Center, modifier = Modifier.size(40.dp)) {
         CircularProgressIndicator(
             progress = { animatedProgress },
-            modifier = Modifier.size(32.dp),
+            modifier = Modifier.size(36.dp),
             strokeWidth = 3.dp,
             color = accent,
-            trackColor = MaterialTheme.colorScheme.surfaceVariant
+            trackColor = MaterialTheme.colorScheme.surfaceContainerHighest
         )
         Text(
             text = stringResource(R.string.ocr_package_label_percent, (progress * 100).toInt()),
             style = MaterialTheme.typography.labelSmall,
-            fontWeight = FontWeight.Bold
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onSurface
         )
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun DeleteConfirmationDialog(
     conf: DeleteConfirmation,
@@ -451,9 +500,19 @@ private fun DeleteConfirmationDialog(
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
+        icon = {
+            Icon(
+                painter = painterResource(R.drawable.ic_delete_outline),
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.error
+            )
+        },
         confirmButton = {
-            Button(onClick = { onConfirm(conf.pkg, conf.version) }) {
-                Text(stringResource(R.string.ocr_package_action_button_delete))
+            TextButton(onClick = { onConfirm(conf.pkg, conf.version) }) {
+                Text(
+                    text = stringResource(R.string.ocr_package_action_button_delete),
+                    color = MaterialTheme.colorScheme.error
+                )
             }
         },
         dismissButton = {
@@ -470,7 +529,8 @@ private fun DeleteConfirmationDialog(
                     versionName(conf.version)
                 )
             )
-        }
+        },
+        shape = RoundedCornerShape(28.dp)
     )
 }
 
