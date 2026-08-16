@@ -1,6 +1,7 @@
 package off.kys.textgrab.ocr
 
 import android.content.Context
+import android.os.Build
 import off.kys.textgrab.ocr.model.TesseractVersion
 import java.io.File
 import java.io.FileOutputStream
@@ -61,7 +62,12 @@ object TessDataStore {
                 connectTimeout = 10000
                 readTimeout = 10000
             }.getInputStream().use { input ->
-                val total = try { URL(url).openConnection().contentLengthLong } catch (_: Exception) { -1L }
+                val conn = URL(url).openConnection()
+                val total = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                    conn.contentLengthLong
+                } else {
+                    conn.contentLength.toLong()
+                }
                 var downloaded = 0L
                 FileOutputStream(tempFile).use { output ->
                     val buffer = ByteArray(8192)

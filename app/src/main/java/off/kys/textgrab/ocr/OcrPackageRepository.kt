@@ -2,6 +2,7 @@ package off.kys.textgrab.ocr
 
 import android.app.ActivityManager
 import android.content.Context
+import android.os.Build
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
@@ -356,8 +357,12 @@ class OcrPackageRepository(
                 connection.responseCode
 
             if (responseCode in 200..299) {
-                connection.contentLengthLong
-                    .takeIf { it > 0L }
+                val length = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                    connection.contentLengthLong
+                } else {
+                    connection.contentLength.toLong()
+                }
+                length.takeIf { it > 0L }
             } else {
                 null
             }
@@ -408,8 +413,12 @@ class OcrPackageRepository(
                     )
                 }
                 in 200..299 -> {
-                    connection.contentLengthLong
-                        .takeIf { it > 0L }
+                    val length = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                        connection.contentLengthLong
+                    } else {
+                        connection.contentLength.toLong()
+                    }
+                    length.takeIf { it > 0L }
                 }
                 else -> null
             }

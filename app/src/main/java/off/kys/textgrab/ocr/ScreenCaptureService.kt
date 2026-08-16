@@ -19,6 +19,7 @@ import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
 import androidx.core.app.NotificationCompat
+import androidx.core.app.ServiceCompat
 import androidx.core.content.IntentCompat
 import androidx.core.graphics.createBitmap
 import kotlinx.coroutines.CoroutineScope
@@ -162,15 +163,17 @@ class ScreenCaptureService : Service() {
     }
 
     private fun ensureChannel() {
-        val mgr = getSystemService(NotificationManager::class.java)
-        if (mgr.getNotificationChannel(CHANNEL_ID) == null) {
-            mgr.createNotificationChannel(
-                NotificationChannel(
-                    CHANNEL_ID,
-                    getString(R.string.notif_capture_channel_name),
-                    NotificationManager.IMPORTANCE_LOW,
-                ),
-            )
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val mgr = getSystemService(NotificationManager::class.java)
+            if (mgr.getNotificationChannel(CHANNEL_ID) == null) {
+                mgr.createNotificationChannel(
+                    NotificationChannel(
+                        CHANNEL_ID,
+                        getString(R.string.notif_capture_channel_name),
+                        NotificationManager.IMPORTANCE_LOW,
+                    ),
+                )
+            }
         }
     }
 
@@ -186,7 +189,7 @@ class ScreenCaptureService : Service() {
     }
 
     private fun stopEverything() {
-        stopForeground(STOP_FOREGROUND_REMOVE)
+        ServiceCompat.stopForeground(this, ServiceCompat.STOP_FOREGROUND_REMOVE)
         stopSelf()
     }
 

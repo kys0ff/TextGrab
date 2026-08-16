@@ -90,12 +90,15 @@ class OcrDownloadService : Service() {
 
     private fun createNotification(title: String, progressText: String, progress: Int): android.app.Notification {
         val channelId = "ocr_downloads"
-        val channel = NotificationChannel(
-            channelId,
-            getString(R.string.notif_download_channel_name),
-            NotificationManager.IMPORTANCE_LOW
-        )
-        getSystemService(NotificationManager::class.java).createNotificationChannel(channel)
+        
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channel = NotificationChannel(
+                channelId,
+                getString(R.string.notif_download_channel_name),
+                NotificationManager.IMPORTANCE_LOW
+            )
+            getSystemService(NotificationManager::class.java).createNotificationChannel(channel)
+        }
 
         val intent = Intent(this, MainActivity::class.java)
         val pendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_IMMUTABLE)
@@ -150,7 +153,11 @@ class OcrDownloadService : Service() {
                 putExtra(EXTRA_URL, url)
                 putExtra(EXTRA_DISPLAY_NAME, displayName)
             }
-            context.startForegroundService(intent)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                context.startForegroundService(intent)
+            } else {
+                context.startService(intent)
+            }
         }
     }
 }

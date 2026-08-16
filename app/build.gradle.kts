@@ -9,7 +9,7 @@ android {
 
     defaultConfig {
         applicationId = "off.kys.textgrab"
-        minSdk = 26
+        minSdk = 23
         //noinspection OldTargetApi
         targetSdk = 35
         versionCode = 1
