@@ -46,7 +46,7 @@ To provide its core functionality, TextGrab requires the following permissions:
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/kys0adam/TextGrab.git
+   git clone https://github.com/kys0ff/TextGrab.git
    ```
 2. Open the project in Android Studio.
 3. Build and run the app on your device.
@@ -59,7 +59,7 @@ Contributions are welcome! Whether it's a bug report, a feature request, or a tr
 
 If you find this project useful, consider supporting development via Liberapay:
 
-[![Donate with Liberapay](https://liberapay.com/assets/widgets/donate.svg)](https://liberapay.com/kys0adam/donate)
+[![Donate with Liberapay](https://liberapay.com/assets/widgets/donate.svg)](https://liberapay.com/kys0ff/donate)
 
 ## License
 
