@@ -20,6 +20,12 @@
     <string name="common_toast_copied">In die Zwischenablage kopiert</string>
     <string name="common_toast_multi_copied">%1$d Elemente kopiert</string>
 
+    <!-- Donation -->
+    <string name="donation_action_button_donate">Auf Liberapay spenden</string>
+    <string name="donation_action_button_remove">Symbol entfernen</string>
+    <string name="donation_dialog_desc">Alle meine Apps sind völlig kostenlos – nimm sie, benutze sie, missbrauche sie, wie du willst. Aber wenn diese (oder eine der anderen) es tatsächlich schafft, dein Leben einfacher zu machen, ziehe in Erwägung, dem Entwickler ein paar Münzen zuzuwerfen. Es hilft wirklich dabei, das Licht an, den Code quelloffen und meine existenzielle Angst auf einem überschaubaren Niveau zu halten.</string>
+    <string name="donation_dialog_title">TextGrab unterstützen</string>
+
     <!-- History -->
     <string name="history_action_button_clear">Löschen</string>
     <string name="history_clear_confirm_desc">Dies wird alle kopierten Textelemente dauerhaft aus Ihrem Verlauf entfernen.</string>
@@ -111,4 +117,4 @@
     <string name="tile_label_name">TextGrab</string>
     <string name="tile_setup_label_desc">Wischen Sie zweimal nach unten, tippen Sie auf die Schaltfläche "Bearbeiten" (Stift) und ziehen Sie dann die TextGrab-Kachel in Ihre aktiven Kacheln. Tippen Sie jederzeit darauf, um Text sofort zu erfassen.</string>
     <string name="tile_setup_label_title">Kachel für Schnelleinstellungen hinzufügen</string>
-    </resources>
+</resources>

@@ -1,18 +1,22 @@
 package off.kys.textgrab.ui.screens.main
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandHorizontally
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
+import androidx.compose.animation.shrinkHorizontally
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -40,6 +44,7 @@ import off.kys.textgrab.core.model.OverlayCommand
 import off.kys.textgrab.core.permission.PermissionManager
 import off.kys.textgrab.overlay.OverlayBus
 import off.kys.textgrab.ui.screens.main.components.ClearHistoryDialog
+import off.kys.textgrab.ui.screens.main.components.DonationDialog
 import off.kys.textgrab.ui.screens.main.components.HistorySection
 import off.kys.textgrab.ui.screens.main.components.PermissionGrid
 import off.kys.textgrab.ui.screens.main.components.ReadinessHero
@@ -116,7 +121,23 @@ private fun MainScreenContent(
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.surface,
                     scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainer,
-                )
+                ),
+                actions = {
+                    AnimatedVisibility(
+                        visible = state.showDonationIcon,
+                        enter = fadeIn() + expandHorizontally(),
+                        exit = fadeOut() + shrinkHorizontally()
+                    ) {
+                        IconButton(onClick = { onEvent(MainEvent.OpenDonationDialog) }) {
+                            Icon(
+                                modifier = Modifier.size(24.dp),
+                                painter = painterResource(R.drawable.ic_liberapay),
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                    }
+                }
             )
         },
         floatingActionButton = {
@@ -198,6 +219,13 @@ private fun MainScreenContent(
                 onDismiss = { onEvent(MainEvent.DismissClearHistoryDialog) }
             )
         }
+
+        if (state.showDonationDialog) {
+            DonationDialog(
+                onDismiss = { onEvent(MainEvent.DismissDonationDialog) },
+                onRemoveIcon = { onEvent(MainEvent.RemoveDonationIcon) }
+            )
+        }
     }
 }
 
@@ -208,10 +236,24 @@ private fun MainScreenPreview() {
         MainScreenContent(
             state = MainState(
                 history = listOf(
-                    HistoryEntry(1L, "Sample extracted text 1", System.currentTimeMillis(), ExtractionMode.ACCESSIBILITY),
-                    HistoryEntry(2L, "Sample extracted text 2", System.currentTimeMillis() - 1000000, ExtractionMode.OCR)
+                    HistoryEntry(
+                        1L,
+                        "Sample extracted text 1",
+                        System.currentTimeMillis(),
+                        ExtractionMode.ACCESSIBILITY
+                    ),
+                    HistoryEntry(
+                        2L,
+                        "Sample extracted text 2",
+                        System.currentTimeMillis() - 1000000,
+                        ExtractionMode.OCR
+                    )
                 ),
-                permissions = PermissionUiState(accessibility = true, overlay = false, notifications = true)
+                permissions = PermissionUiState(
+                    accessibility = true,
+                    overlay = false,
+                    notifications = true
+                )
             ),
             onEvent = {},
             onOpenAccessibility = {},

@@ -6,6 +6,7 @@ import kotlinx.coroutines.launch
 import off.kys.textgrab.core.clipboard.ClipboardHelper
 import off.kys.textgrab.core.permission.PermissionManager
 import off.kys.textgrab.data.HistoryRepository
+import off.kys.textgrab.data.SettingsRepository
 import off.kys.textgrab.ocr.OcrEngine
 import off.kys.textgrab.ocr.OcrPackageRepository
 import off.kys.textgrab.ui.screens.main.MainViewModel
@@ -21,6 +22,7 @@ val appModule = module {
     single { OcrPackageRepository(androidContext()) }.onClose { it?.close() }
     single { ClipboardHelper(androidContext(), get()) }
     single { PermissionManager(androidContext()) }
+    single { SettingsRepository(androidContext()) }
     single { OcrEngine(get()) }.onClose { engine ->
         GlobalScope.launch { engine?.close() }
     }

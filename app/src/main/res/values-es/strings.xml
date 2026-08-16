@@ -20,6 +20,12 @@
     <string name="common_toast_copied">Copiado al portapapeles</string>
     <string name="common_toast_multi_copied">Copiado %1$d elementos</string>
 
+    <!-- Donation -->
+    <string name="donation_action_button_donate">Donar en Liberapay</string>
+    <string name="donation_action_button_remove">Eliminar icono</string>
+    <string name="donation_dialog_desc">Todas mis aplicaciones son completamente gratuitas: tómalas, úsalas, abúsales como quieras. Pero si esta (o cualquiera de las otras) realmente logra facilitarte la vida, considera donar unas monedas al desarrollador. Realmente ayuda a mantener las luces encendidas, el código abierto y mi angustia existencial en un nivel manejable.</string>
+    <string name="donation_dialog_title">Apoya a TextGrab</string>
+
     <!-- History -->
     <string name="history_action_button_clear">Limpiar</string>
     <string name="history_clear_confirm_desc">Esto eliminará permanentemente todos los elementos de texto copiados de tu historial.</string>
@@ -111,4 +117,4 @@
     <string name="tile_label_name">TextGrab</string>
     <string name="tile_setup_label_desc">Desliza hacia abajo dos veces, toca el botón de editar (lápiz), y luego arrastra el mosaico de TextGrab a tus mosaicos activos. Tócalo en cualquier momento para capturar texto al instante.</string>
     <string name="tile_setup_label_title">Añade el mosaico de Ajustes rápidos</string>
-    </resources>
+</resources>

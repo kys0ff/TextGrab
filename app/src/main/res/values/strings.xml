@@ -21,6 +21,13 @@
     <string name="common_toast_copied">Copied to clipboard</string>
     <string name="common_toast_multi_copied">Copied %1$d items</string>
 
+    <!-- Donation -->
+    <string name="donation_action_button_donate">Donate on Liberapay</string>
+    <string name="donation_action_button_remove">Remove icon</string>
+    <string name="donation_dialog_desc">All my apps are completely free—take them, use them, abuse them however you want. But if this one (or any of the others) actually manages to make your life easier, consider tossing a few coins to the developer. It genuinely helps keep the lights on, the code open source, and my existential dread at a manageable level.</string>
+    <string name="donation_dialog_title">Support TextGrab</string>
+    <string name="donation_liberapay_url" translatable="false">https://liberapay.com/kys0ff</string>
+
     <!-- History -->
     <string name="history_action_button_clear">Clear</string>
     <string name="history_clear_confirm_desc">This will permanently remove all copied text items from your history.</string>

@@ -20,6 +20,12 @@
     <string name="common_toast_copied">تم النسخ إلى الحافظة</string>
     <string name="common_toast_multi_copied">تم نسخ %1$d عنصرًا</string>
 
+    <!-- Donation -->
+    <string name="donation_action_button_donate">تبرع عبر Liberapay</string>
+    <string name="donation_action_button_remove">إزالة الأيقونة</string>
+    <string name="donation_dialog_desc">جميع تطبيقاتي مجانية تمامًا - خذها واستخدمها كما تشاء. ولكن إذا نجح هذا التطبيق (أو أي من التطبيقات الأخرى) في تسهيل حياتك، ففكر في التبرع ببعض العملات للمطور. يساعد هذا حقًا في استمرار العمل، وبقاء الكود مفتوح المصدر، وبقاء قلقي الوجودي عند مستوى يمكن التعامل معه.</string>
+    <string name="donation_dialog_title">ادعم TextGrab</string>
+
     <!-- History -->
     <string name="history_action_button_clear">مسح</string>
     <string name="history_clear_confirm_desc">سيؤدي هذا إلى إزالة جميع عناصر النص المنسوخة نهائيًا من سجلك.</string>
@@ -111,4 +117,4 @@
     <string name="tile_label_name">تكست غراب</string>
     <string name="tile_setup_label_desc">اسحب لأسفل مرتين، اضغط على زر التعديل (القلم)، ثم اسحب مربّع تكست غراب إلى المربعات النشطة. اضغط عليه في أي وقت لالتقاط النص فورًا.</string>
     <string name="tile_setup_label_title">أضف مربّع الإعدادات السريعة</string>
-    </resources>
+</resources>

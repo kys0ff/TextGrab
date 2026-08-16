@@ -8,4 +8,7 @@ sealed interface MainEvent {
     data object ConfirmClearHistory : MainEvent
     data object DismissClearHistoryDialog : MainEvent
     data class OnHistoryCopy(val entry: HistoryEntry) : MainEvent
+    data object OpenDonationDialog : MainEvent
+    data object DismissDonationDialog : MainEvent
+    data object RemoveDonationIcon : MainEvent
 }

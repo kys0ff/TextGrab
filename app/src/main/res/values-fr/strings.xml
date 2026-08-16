@@ -20,6 +20,12 @@
     <string name="common_toast_copied">Copié dans le presse-papiers</string>
     <string name="common_toast_multi_copied">%1$d éléments copiés</string>
 
+    <!-- Donation -->
+    <string name="donation_action_button_donate">Faire un don sur Liberapay</string>
+    <string name="donation_action_button_remove">Supprimer l\'icône</string>
+    <string name="donation_dialog_desc">Toutes mes applications sont entièrement gratuites : prenez-les, utilisez-les, abusez-en comme vous le souhaitez. Mais si celle-ci (ou l\'une des autres) parvient réellement à vous faciliter la vie, envisagez de verser quelques pièces au développeur. Cela aide vraiment à garder les lumières allumées, le code en source ouverte et mon angoisse existentielle à un niveau gérable.</string>
+    <string name="donation_dialog_title">Soutenir TextGrab</string>
+
     <!-- History -->
     <string name="history_action_button_clear">Effacer</string>
     <string name="history_clear_confirm_desc">Cela supprimera définitivement tous les éléments de texte copiés de votre historique.</string>
@@ -111,4 +117,4 @@
     <string name="tile_label_name">TextGrab</string>
     <string name="tile_setup_label_desc">Balayez deux fois vers le bas, appuyez sur le bouton d\'édition (crayon), puis faites glisser la tuile TextGrab dans vos tuiles actives. Appuyez dessus à tout moment pour saisir du texte instantanément.</string>
     <string name="tile_setup_label_title">Ajouter la tuile de paramètres rapides</string>
-    </resources>
+</resources>

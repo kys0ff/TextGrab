@@ -5,5 +5,7 @@ import off.kys.textgrab.core.model.HistoryEntry
 data class MainState(
     val history: List<HistoryEntry> = emptyList(),
     val permissions: PermissionUiState = PermissionUiState(),
-    val showClearHistoryConfirmation: Boolean = false
+    val showClearHistoryConfirmation: Boolean = false,
+    val showDonationIcon: Boolean = true,
+    val showDonationDialog: Boolean = false
 )
