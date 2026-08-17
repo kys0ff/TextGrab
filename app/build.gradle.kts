@@ -52,7 +52,10 @@ android {
 
     packaging {
         resources {
-            excludes += "/META-INF/{AL2.0,LGPL2.1}"
+            excludes += listOf(
+                "/META-INF/{AL2.0,LGPL2.1}",
+                "/assets/dexopt/baseline.prof*"
+            )
         }
     }
 }
@@ -78,7 +81,7 @@ dependencies {
     implementation(libs.androidx.compose.material3)
     debugImplementation(libs.androidx.compose.ui.tooling)
 
-    // Tesseract OCR (Latin + Arabic)
+    // Tesseract OCR
     implementation(libs.tesseract4android)
 
     // Coroutines
@@ -92,7 +95,6 @@ dependencies {
 
     // Voyager
     implementation(libs.voyager.navigator)
-    implementation(libs.voyager.screenmodel)
     implementation(libs.voyager.koin)
     implementation(libs.voyager.transitions)
 }
